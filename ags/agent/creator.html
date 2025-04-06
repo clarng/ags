@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Push-to-Talk Audio Recorder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        #recordButton {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: #f44336;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        #recordButton:active {
+            transform: scale(0.95);
+            background-color: #d32f2f;
+        }
+        #recordButton.recording {
+            background-color: #d32f2f;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        #timer {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        #audioElement {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .status {
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .instructions {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .recording-list {
+            margin-top: 30px;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .recording-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .recording-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Push-to-Talk Audio Recorder</h1>
+    
+    <div class="instructions">
+        <p><strong>Instructions:</strong></p>
+        <p>1. Press and hold the button to record</p>
+        <p>2. Release to stop recording and save the file</p>
+        <p>3. Your recordings will appear in the list below</p>
+    </div>
+    
+    <div class="container">
+        <div id="timer">00:00</div>
+        <button id="recordButton">Press and hold to record</button>
+        <p class="status" id="status">Ready to record</p>
+        
+        <audio id="audioElement" controls></audio>
+        
+        <div class="recording-list" id="recordingList">
+            <h3>Your Recordings</h3>
+            <div id="recordingsContainer">
+                <p>No recordings yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const recordButton = document.getElementById('recordButton');
+        const audioElement = document.getElementById('audioElement');
+        const timerElement = document.getElementById('timer');
+        const statusElement = document.getElementById('status');
+        const recordingsContainer = document.getElementById('recordingsContainer');
+
+        // Variables for recording
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+        let audioUrl;
+        let startTime;
+        let timerInterval;
+        let stream;
+        let recordingCount = 0;
+
+        // Event listeners for push-to-talk
+        recordButton.addEventListener('mousedown', startRecording);
+        recordButton.addEventListener('touchstart', startRecording);
+        recordButton.addEventListener('mouseup', stopAndSaveRecording);
+        recordButton.addEventListener('touchend', stopAndSaveRecording);
+        recordButton.addEventListener('mouseleave', stopAndSaveRecording);
+
+        // Function to start recording
+        async function startRecording(e) {
+            e.preventDefault(); // Prevent default behavior for touch events
+            
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                statusElement.textContent = 'Recording...';
+                
+                // Create media recorder
+                mediaRecorder = new MediaRecorder(stream);
+                
+                // Clear previous recording chunks
+                audioChunks = [];
+                
+                // Start recording
+                mediaRecorder.start();
+                
+                // Start timer
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 100);
+                updateTimer();
+                
+                // Update UI
+                recordButton.classList.add('recording');
+                recordButton.textContent = 'Recording... Release to stop';
+                
+                // Handle data availability
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+                
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                statusElement.textContent = 'Error: Could not access microphone. Please make sure you have a microphone and have granted permission.';
+            }
+        }
+
+        // Function to stop recording and save file
+        function stopAndSaveRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                clearInterval(timerInterval);
+                
+                // Update UI
+                recordButton.classList.remove('recording');
+                recordButton.textContent = 'Press and hold to record';
+                
+                // Process the recording when stopped
+                mediaRecorder.onstop = () => {
+                    // Create blob from chunks
+                    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // Update audio element
+                    audioElement.src = audioUrl;
+                    
+                    // Get recording duration
+                    const duration = getDurationString();
+                    
+                    // Save the recording automatically
+                    saveRecording(duration);
+                    
+                    // Stop all tracks
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    // Update status
+                    statusElement.textContent = 'Recording saved. Ready for next recording.';
+                    
+                    // Reset timer
+                    timerElement.textContent = '00:00';
+                };
+            }
+        }
+
+        // Function to save recording
+        function saveRecording(duration) {
+            if (audioBlob) {
+                recordingCount++;
+                const currentDate = new Date();
+                const fileName = `audio_recording_${formatDate(currentDate)}.webm`;
+                
+                // Create a download link
+                const downloadLink = document.createElement('a');
+                downloadLink.href = audioUrl;
+                downloadLink.download = fileName;
+                
+                // Add recording to the list
+                if (recordingCount === 1) {
+                    recordingsContainer.innerHTML = ''; // Clear "No recordings yet" message
+                }
+                
+                const recordingItem = document.createElement('div');
+                recordingItem.className = 'recording-item';
+                recordingItem.innerHTML = `
+                    <div>
+                        <strong>Recording ${recordingCount}</strong> - ${currentDate.toLocaleTimeString()}
+                        <br>
+                        <small>Duration: ${duration} | Filename: ${fileName}</small>
+                    </div>
+                    <button class="download-btn">Download</button>
+                `;
+                
+                // Add download functionality to the button
+                const downloadBtn = recordingItem.querySelector('.download-btn');
+                downloadBtn.addEventListener('click', () => {
+                    downloadLink.click();
+                });
+                
+                // Add to recordings container
+                recordingsContainer.prepend(recordingItem);
+                
+                // Automatically trigger download
+                downloadLink.click();
+            }
+        }
+
+        // Function to update timer
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            timerElement.textContent = `${minutes}:${seconds}`;
+        }
+        
+        // Function to get duration string
+        function getDurationString() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        }
+
+        // Function to format date for filename
+        function formatDate(date) {
+            return date.toISOString()
+                .replace(/T/, '_')
+                .replace(/\..+/, '')
+                .replace(/:/g, '-');
+        }
+    </script>
+</body>
+</html>
