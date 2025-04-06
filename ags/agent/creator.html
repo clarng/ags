@@ -110,13 +110,6 @@
             margin-top: 10px;
             font-style: italic;
         }
-        .instructions {
-            background-color: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-            text-align: left;
-        }
         .recording-list {
             margin-top: 30px;
             text-align: left;
@@ -255,22 +248,7 @@
 
     <h1>Creator</h1>
     
-    <div class="instructions">
-        <p><strong>Instructions:</strong></p>
-        <p>1. Press and hold the button to record</p>
-        <p>2. Release to stop recording and save the file</p>
-        <p>3. Your recordings will appear in the list below</p>
-    </div>
-    
-    <div class="container">
-        <div id="timer">00:00</div>
-        <button id="recordButton">Press and hold to record</button>
-        <p class="status" id="status">Ready to record</p>
-        
-        <audio id="audioElement" controls></audio>
-    </div>
-
-    <!-- OpenAI API Section -->
+    <!-- OpenAI API Section - Moved to top -->
     <div class="openai-section">
         <h2>OpenAI API Chat</h2>
         <textarea id="openaiInput" class="openai-input" rows="4" placeholder="Enter your message here..."></textarea>
@@ -280,6 +258,14 @@
         <div id="openaiResponse" class="openai-response">
             <p>Response will appear here...</p>
         </div>
+    </div>
+    
+    <div class="container">
+        <div id="timer">00:00</div>
+        <button id="recordButton">Press and hold to record</button>
+        <p class="status" id="status">Ready to record</p>
+        
+        <audio id="audioElement" controls></audio>
     </div>
 
     <!-- Developer View Content -->
