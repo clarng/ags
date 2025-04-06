@@ -46,13 +46,13 @@ async def store_embedding(
     metadata: Dict[str, Any] | None = None,
     id: Optional[str] = None
 ) -> None:
-    """Store text embedding in Pinecone.
+    """Store text embedding.
     
     Args:
-        index_name: Name of the Pinecone index
+        index_name: Name of the index
         text: Text to generate embedding from
         metadata: Optional metadata to store with the embedding
-        id: Optional ID for the vector. If not provided, a random ID will be generated.
+        id: Optional ID for the vector. If not provided, a stable hash of the text will be used.
         
     Raises:
         Exception: If there is an error storing the embedding
@@ -81,12 +81,12 @@ async def query_similar(
     query_text: str,
     top_k: int = 5
 ) -> List[Dict[str, Any]]:
-    """Query Pinecone for similar texts.
+    """Query for similar texts.
     
     Args:
-        index_name: Name of the Pinecone index
+        index_name: Name of the index
         query_text: Text to find similar embeddings for
-        top_k: Number of results to return
+        top_k: Number of closest matching results to return
         
     Returns:
         List of similar texts with their metadata

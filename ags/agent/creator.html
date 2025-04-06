@@ -82,6 +82,64 @@
         .recording-item:last-child {
             border-bottom: none;
         }
+        /* OpenAI API section styles */
+        .openai-section {
+            margin-top: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .openai-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .openai-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .openai-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .openai-button:hover {
+            background-color: #45a049;
+        }
+        .openai-response {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: left;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,.1);
+            border-radius: 50%;
+            border-top-color: #4CAF50;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -109,6 +167,18 @@
         </div>
     </div>
 
+    <!-- OpenAI API Section -->
+    <div class="openai-section">
+        <h2>OpenAI API Chat</h2>
+        <textarea id="openaiInput" class="openai-input" rows="4" placeholder="Enter your message here..."></textarea>
+        <div>
+            <button id="sendToOpenAI" class="openai-button">Send to OpenAI</button>
+        </div>
+        <div id="openaiResponse" class="openai-response">
+            <p>Response will appear here...</p>
+        </div>
+    </div>
+
     <script>
         // DOM elements
         const recordButton = document.getElementById('recordButton');
@@ -116,6 +186,11 @@
         const timerElement = document.getElementById('timer');
         const statusElement = document.getElementById('status');
         const recordingsContainer = document.getElementById('recordingsContainer');
+        
+        // OpenAI elements
+        const openaiInput = document.getElementById('openaiInput');
+        const sendToOpenAIButton = document.getElementById('sendToOpenAI');
+        const openaiResponse = document.getElementById('openaiResponse');
 
         // Variables for recording
         let mediaRecorder;
@@ -133,6 +208,9 @@
         recordButton.addEventListener('mouseup', stopAndSaveRecording);
         recordButton.addEventListener('touchend', stopAndSaveRecording);
         recordButton.addEventListener('mouseleave', stopAndSaveRecording);
+        
+        // Event listener for OpenAI API
+        sendToOpenAIButton.addEventListener('click', sendToOpenAI);
 
         // Function to start recording
         async function startRecording(e) {
@@ -274,6 +352,47 @@
                 .replace(/T/, '_')
                 .replace(/\..+/, '')
                 .replace(/:/g, '-');
+        }
+        
+        // Function to send text to OpenAI API via our server
+        async function sendToOpenAI() {
+            const userInput = openaiInput.value.trim();
+            if (!userInput) {
+                alert('Please enter a message');
+                return;
+            }
+            
+            // Show loading indicator
+            openaiResponse.innerHTML = '<div class="loading"></div> Sending request to OpenAI...';
+            sendToOpenAIButton.disabled = true;
+            
+            try {
+                // Send request to our server endpoint
+                const response = await fetch('/api/openai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: userInput }),
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Display the response
+                openaiResponse.innerHTML = `<p><strong>OpenAI Response:</strong></p><p>${data.response}</p>`;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                openaiResponse.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+            } finally {
+                // Re-enable the button
+                sendToOpenAIButton.disabled = false;
+            }
         }
     </script>
 </body>
