@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Push-to-Talk Audio Recorder</title>
+    <title>Creator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,6 +11,60 @@
             margin: 0 auto;
             padding: 20px;
             text-align: center;
+            position: relative;
+        }
+        .settings-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #f5f5f5;
+            transition: transform 0.3s ease;
+        }
+        .settings-icon:hover {
+            transform: rotate(45deg);
+        }
+        .settings-dropdown {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            display: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .settings-dropdown.active {
+            display: block;
+        }
+        .settings-option {
+            padding: 8px 15px;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .settings-option:hover {
+            background: #f5f5f5;
+        }
+        .settings-option.active {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .view-toggle {
+            display: none;
+        }
+        .view-toggle.active {
+            display: block;
         }
         .container {
             margin-top: 30px;
@@ -140,10 +194,66 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        /* Tab styles */
+        .tabs {
+            margin: 20px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            position: relative;
+        }
+        .tab-button.active {
+            color: #4CAF50;
+        }
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #4CAF50;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <h1>Push-to-Talk Audio Recorder</h1>
+    <div class="settings-icon" id="settingsIcon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+    </div>
+    <div class="settings-dropdown" id="settingsDropdown">
+        <div class="settings-option active" data-view="main">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+            Main View
+        </div>
+        <div class="settings-option" data-view="developer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            Developer View
+        </div>
+    </div>
+
+    <h1>Creator</h1>
     
     <div class="instructions">
         <p><strong>Instructions:</strong></p>
@@ -158,13 +268,6 @@
         <p class="status" id="status">Ready to record</p>
         
         <audio id="audioElement" controls></audio>
-        
-        <div class="recording-list" id="recordingList">
-            <h3>Your Recordings</h3>
-            <div id="recordingsContainer">
-                <p>No recordings yet.</p>
-            </div>
-        </div>
     </div>
 
     <!-- OpenAI API Section -->
@@ -176,6 +279,16 @@
         </div>
         <div id="openaiResponse" class="openai-response">
             <p>Response will appear here...</p>
+        </div>
+    </div>
+
+    <!-- Developer View Content -->
+    <div id="developerView" class="view-toggle">
+        <div class="recording-list" id="recordingList">
+            <h3>Your Recordings</h3>
+            <div id="recordingsContainer">
+                <p>No recordings yet.</p>
+            </div>
         </div>
     </div>
 
@@ -191,6 +304,12 @@
         const openaiInput = document.getElementById('openaiInput');
         const sendToOpenAIButton = document.getElementById('sendToOpenAI');
         const openaiResponse = document.getElementById('openaiResponse');
+
+        // Settings functionality
+        const settingsIcon = document.getElementById('settingsIcon');
+        const settingsDropdown = document.getElementById('settingsDropdown');
+        const settingsOptions = document.querySelectorAll('.settings-option');
+        const developerView = document.getElementById('developerView');
 
         // Variables for recording
         let mediaRecorder;
@@ -211,6 +330,38 @@
         
         // Event listener for OpenAI API
         sendToOpenAIButton.addEventListener('click', sendToOpenAI);
+
+        // Toggle settings dropdown
+        settingsIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsDropdown.classList.toggle('active');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            settingsDropdown.classList.remove('active');
+        });
+
+        // Handle view switching
+        settingsOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const view = option.getAttribute('data-view');
+                
+                // Update active state
+                settingsOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                // Toggle views
+                if (view === 'developer') {
+                    developerView.classList.add('active');
+                } else {
+                    developerView.classList.remove('active');
+                }
+                
+                // Close dropdown
+                settingsDropdown.classList.remove('active');
+            });
+        });
 
         // Function to start recording
         async function startRecording(e) {
