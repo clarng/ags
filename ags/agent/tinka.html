@@ -188,6 +188,11 @@
             border: 1px solid #ccc;
             border-radius: 20px;
             font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        .input-container textarea.recording {
+            border-color: #f44336;
+            box-shadow: 0 0 5px rgba(244, 67, 54, 0.5);
         }
         .input-container button {
             margin-left: 10px;
@@ -589,6 +594,7 @@
                 // Update UI
                 recordButton.classList.add('recording');
                 recordButton.title = 'Recording... Release to stop';
+                openaiInput.classList.add('recording');
                 
                 // Handle data availability
                 mediaRecorder.ondataavailable = (event) => {
@@ -605,17 +611,21 @@
 
         // Function to stop recording and save file
         function stopAndSaveRecording() {
+            // Update UI
+            recordButton.classList.remove('recording');
+            recordButton.title = 'Press and hold to record';
+            openaiInput.classList.remove('recording');
+            clearInterval(timerInterval);                
+
             if (recognition) {
                 recognition.stop();
             }
 
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
-                clearInterval(timerInterval);                
                 
-                // Update UI
-                recordButton.classList.remove('recording');
-                recordButton.title = 'Press and hold to record';
+                
+                
                 
                 // Process the recording when stopped
                 mediaRecorder.onstop = () => {
