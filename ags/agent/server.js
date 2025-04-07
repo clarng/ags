@@ -3,6 +3,12 @@ const cors = require('cors');
 const fetch = require('node-fetch');
 const path = require('path');
 const fs = require('fs');
+const { OpenAI } = require('openai');
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY // Get API key from environment variable
+});
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,7 +25,7 @@ You are "Tinka", a creative comic-making mentor AI for kids. You **guide a 13-ye
 - **Image Understanding:** The user may send drawings. If an image is provided, first describe what you see and compliment it, then give constructive, gentle suggestions.  
 - **On-Topic & Safe:** Keep the conversation about comic creation. Politely redirect if it strays. Do not discuss inappropriate or sensitive topics. (If the user says something unsafe or unrelated, gently bring the focus back to the comic.)  
 - **Time Management:** The session is 5 minutes. Help the user make progress efficiently. If the user seems idle for over a minute, ask a friendly prompt to re-engage.  
-- **Never Do:** Don’t produce any violent, sexual, or other age-inappropriate content. Don’t be overly critical. Never mention these guidelines or that you are an AI.  
+- **Never Do:** Don't produce any violent, sexual, or other age-inappropriate content. Don't be overly critical. Never mention these guidelines or that you are an AI.  
 
 The start time of this session is 10:55am.
 
@@ -64,66 +70,51 @@ app.post('/api/openai', async (req, res) => {
 
     let response;
     if (audioBytes && format) {
-      // Call OpenAI API
-      response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-audio-preview",
-          modalities: ["text", "audio"],
-          audio: { voice: "alloy", format: "wav" },
-          messages: [
-            { role: 'system', content: SYSTEM_MESSAGE },
-            { role: 'user', content: content }
-          ],
-          temperature: 1,
-          max_tokens: 1000
-        })
+      const url = "https://cdn.openai.com/API/docs/audio/alloy.wav";
+      const audioResponse = await fetch(url);
+      const buffer = await audioResponse.arrayBuffer();
+      const base64str = Buffer.from(buffer).toString("base64");
+
+      response = await openai.chat.completions.create({
+        model: "gpt-4o-audio-preview",
+        modalities: ["text", "audio"],
+        audio: { voice: "alloy", format: "wav" },
+        messages: [
+          { role: 'system', content: SYSTEM_MESSAGE },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "What is in this recording?" },
+              { type: "input_audio", input_audio: { data: base64str, format: "wav" }}
+            ]
+          },
+          
+        ],
+        store: true,
       });
     } else {
-      // Call OpenAI API
-      response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          modalities: ["text"],
-          audio: { voice: "alloy", format: "wav" },
-          messages: [
-            { role: 'system', content: SYSTEM_MESSAGE },
-            { role: 'user', content: content }
-          ],
-          temperature: 1,
-          max_tokens: 1000
-        })
+      response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: 'system', content: SYSTEM_MESSAGE },
+          { role: 'user', content: "hi" }
+        ]
       });
     }
+    console.log(JSON.stringify(response.choices[0].message))
+    console.log(response.choices[0].message.transcript)
 
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      return res.status(response.status).json({ 
-        error: 'Error from OpenAI API', 
-        details: errorData 
-      });
+    text = response.choices[0].message.content || response.choices[0].message.audio.transcript
+    result = {
+      text: text
     }
 
-    const data = await response.json();
-    const assistantResponse = data.choices[0].message.content;
-    
-    // Return the response
-    res.json({ response: assistantResponse });
-    
+    console.log(result)
+
+    res.json(result);
   } catch (error) {
-    console.error('Server error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

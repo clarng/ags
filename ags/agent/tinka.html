@@ -540,7 +540,6 @@
                 stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 statusElement.textContent = 'Recording...';
                 
-                // Create media recorder
                 mediaRecorder = new MediaRecorder(stream);
                 
                 // Clear previous recording chunks
@@ -583,7 +582,6 @@
                 
                 // Process the recording when stopped
                 mediaRecorder.onstop = () => {
-                    // Create blob from chunks
                     audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                     audioUrl = URL.createObjectURL(audioBlob);
                     
@@ -668,7 +666,7 @@
                     // Add assistant message
                     const assistantMessageDiv = document.createElement('div');
                     assistantMessageDiv.className = 'message assistant-message';
-                    assistantMessageDiv.textContent = data.choices[0].message.content;
+                    assistantMessageDiv.textContent = data.text;
                     openaiResponse.appendChild(assistantMessageDiv);
                     
                     // Scroll to bottom
@@ -797,7 +795,7 @@
                 // Add assistant message
                 const assistantMessageDiv = document.createElement('div');
                 assistantMessageDiv.className = 'message assistant-message';
-                assistantMessageDiv.textContent = data.response;
+                assistantMessageDiv.textContent = data.text;
                 openaiResponse.appendChild(assistantMessageDiv);
                 
                 // Scroll to bottom
