@@ -35,7 +35,7 @@ app.use(express.static(path.join(__dirname, 'static')));
 
 // Serve the HTML file
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'creator.html'));
+  res.sendFile(path.join(__dirname, 'tinka.html'));
 });
 
 // OpenAI API endpoint

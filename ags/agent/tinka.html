@@ -50,8 +50,6 @@
             margin-top: 30px;
         }
         #recordButton {
-            width: 200px;
-            height: 200px;
             border-radius: 50%;
             background-color: #f44336;
             color: white;
@@ -133,7 +131,14 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            margin: 10px 0;
+            margin: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            padding: 0;
         }
         .openai-button:hover {
             background-color: #45a049;
@@ -192,6 +197,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        .mic-button {
+            background-color: #f44336;
+            color: white;
+            margin-right: 10px;
+        }
+        .mic-button.recording {
+            background-color: #d32f2f;
+            animation: pulse 1.5s infinite;
+        }
+        .mic-button:active {
+            transform: scale(0.95);
         }
         .loading {
             display: inline-block;
@@ -333,6 +350,14 @@
         </div>
         <div class="input-container">
             <textarea id="openaiInput" class="openai-input" placeholder="Type your message here..." rows="1"></textarea>
+            <button id="recordButton" class="openai-button mic-button" title="Press and hold to record">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+            </button>
             <button id="sendToOpenAI" class="openai-button">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -344,7 +369,6 @@
     
     <div class="container">
         <div id="timer">00:00</div>
-        <button id="recordButton">Press and hold to record</button>
         <p class="status" id="status">Ready to record</p>
         
         <audio id="audioElement" controls></audio>
@@ -531,7 +555,7 @@
                 
                 // Update UI
                 recordButton.classList.add('recording');
-                recordButton.textContent = 'Recording... Release to stop';
+                recordButton.title = 'Recording... Release to stop';
                 
                 // Handle data availability
                 mediaRecorder.ondataavailable = (event) => {
@@ -554,7 +578,7 @@
                 
                 // Update UI
                 recordButton.classList.remove('recording');
-                recordButton.textContent = 'Press and hold to record';
+                recordButton.title = 'Press and hold to record';
                 
                 // Process the recording when stopped
                 mediaRecorder.onstop = () => {
