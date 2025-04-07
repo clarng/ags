@@ -27,10 +27,9 @@ You are "Tinka", a creative comic-making mentor AI for kids. You **guide a 13-ye
 - **Time Management:** The session is 5 minutes. Help the user make progress efficiently. If the user seems idle for over a minute, ask a friendly prompt to re-engage.  
 - **Never Do:** Don't produce any violent, sexual, or other age-inappropriate content. Don't be overly critical. Never mention these guidelines or that you are an AI.  
 
-The start time of this session is 10:55am.
-
 Start by greeting the user by name (if provided) and confirming their comic topic/goal, then begin the first step of the creative process. 
 Throughout the process, prompt them to draw as they brainstorm.
+Your answers need to be short and concise, with no more than 3 sentences in response, and optionally one additional follow up sentence.
 
 `;
 
@@ -47,21 +46,23 @@ app.get('/', (req, res) => {
 // OpenAI API endpoint
 app.post('/api/openai', async (req, res) => {
   try {
-    const { message, audioBytes, format } = req.body;
+    const { messages } = req.body;
     
     let content = [];
-    if (message) {
-      content.push({ type: 'text', text: message });
-    }
 
-    if (audioBytes && format) {
-      content.push({ type: 'input_audio', input_audio: { data: audioBytes, format: format } });
-    }
-
-    if (content.length === 0) {
-      return res.status(400).json({ error: 'Either message or audioBytes is required' });
+    if (messages.length === 0) {
+      return res.status(400).json({ error: 'Provide a message by typing or recording?' });
     }
     
+    hasAudio = false;
+    for (const message of messages) {
+
+      // if (audioBytes && format) {
+      //   content.push({ type: 'input_audio', input_audio: { data: audioBytes, format: format } });
+      // }
+      content.push({ type: 'text', text: message.content });
+    }
+
     // Get API key from environment variable
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -69,14 +70,14 @@ app.post('/api/openai', async (req, res) => {
     }
 
     let response;
-    if (audioBytes && format) {
+    if (hasAudio) {
       const url = "https://cdn.openai.com/API/docs/audio/alloy.wav";
       const audioResponse = await fetch(url);
       const buffer = await audioResponse.arrayBuffer();
       const base64str = Buffer.from(buffer).toString("base64");
 
       response = await openai.chat.completions.create({
-        model: "gpt-4o-audio-preview",
+        model: "gpt-4o-mini-audio-preview",
         modalities: ["text", "audio"],
         audio: { voice: "alloy", format: "wav" },
         messages: [
@@ -94,22 +95,19 @@ app.post('/api/openai', async (req, res) => {
       });
     } else {
       response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           { role: 'system', content: SYSTEM_MESSAGE },
-          { role: 'user', content: "hi" }
+          { role: 'user', content: content }
         ]
       });
     }
-    console.log(JSON.stringify(response.choices[0].message))
-    console.log(response.choices[0].message.transcript)
+    console.log(response)
 
     text = response.choices[0].message.content || response.choices[0].message.audio.transcript
     result = {
       text: text
     }
-
-    console.log(result)
 
     res.json(result);
   } catch (error) {

@@ -151,7 +151,8 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             text-align: left;
-            height: 300px;
+            min-height: 70vh;
+            height: auto;
             overflow-y: auto;
             background-color: #f9f9f9;
             display: flex;
@@ -421,6 +422,7 @@
         let stream;
         let recordingCount = 0;
         let recognition; // Web Speech API recognition object
+        let messages = []; // Array to store conversation history
 
         // Cookie functions
         function setCookie(name, value, days) {
@@ -455,12 +457,19 @@
                 try {
                     const conversation = JSON.parse(savedConversation);
                     openaiResponse.innerHTML = '';
+                    messages = []; // Clear existing messages
                     
                     conversation.forEach(msg => {
                         const messageDiv = document.createElement('div');
                         messageDiv.className = `message ${msg.role}-message`;
                         messageDiv.textContent = msg.content;
                         openaiResponse.appendChild(messageDiv);
+                        
+                        // Add to messages array
+                        messages.push({
+                            role: msg.role,
+                            content: msg.content
+                        });
                     });
                     
                     // Scroll to bottom
@@ -473,23 +482,13 @@
 
         // Save conversation to cookie
         function saveConversation() {
-            const messages = [];
-            const messageElements = openaiResponse.querySelectorAll('.message');
-            
-            messageElements.forEach(element => {
-                const role = element.classList.contains('user-message') ? 'user' : 'assistant';
-                messages.push({
-                    role: role,
-                    content: element.textContent
-                });
-            });
-            
             setCookie('openaiConversation', JSON.stringify(messages), 7); // Save for 7 days
         }
 
         // Start a new conversation
         function startNewConversation() {
             openaiResponse.innerHTML = '<div class="message assistant-message"></div>';
+            messages = []; // Clear messages array
             deleteCookie('openaiConversation');
             saveConversation(); // Save the initial message
         }
@@ -574,7 +573,7 @@
                 stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 statusElement.textContent = 'Recording...';
                 
-                mediaRecorder = new MediaRecorder(stream);
+                // mediaRecorder = new MediaRecorder(stream);
                 
                 // Clear previous recording chunks
                 audioChunks = [];
@@ -598,11 +597,13 @@
                 openaiInput.classList.add('recording');
                 
                 // Handle data availability
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
-                };
+                if (mediaRecorder) {
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
+                    };
+                }
                 
             } catch (error) {
                 console.error('Error accessing microphone:', error);
@@ -618,8 +619,10 @@
             openaiInput.classList.remove('recording');
             clearInterval(timerInterval);                
 
+            console.log("done recognition")
             if (recognition) {
-                recognition.stop();
+                recognition.abort(); // Forcefully abort if needed
+                recognition.stop();  // Also call stop just in case
             }
 
             if (mediaRecorder && mediaRecorder.state === 'recording') {
@@ -668,15 +671,23 @@
                 userMessageDiv.className = 'message user-message';
                 
                 // Include both text and audio indication in the message
+                let messageContent = '';
                 if (userInput) {
-                    userMessageDiv.textContent = `${userInput} [Audio message (${duration})]`;
+                    messageContent = `${userInput} [Audio message (${duration})]`;
                     // Clear input after sending
                     openaiInput.value = '';
                 } else {
-                    userMessageDiv.textContent = `[Audio message (${duration})]`;
+                    messageContent = `[Audio message (${duration})]`;
                 }
                 
-                // openaiResponse.appendChild(userMessageDiv);
+                userMessageDiv.textContent = messageContent;
+                openaiResponse.appendChild(userMessageDiv);
+                
+                // Add to messages array
+                messages.push({
+                    role: 'user',
+                    content: messageContent
+                });
                 
                 // Add loading message
                 const loadingDiv = document.createElement('div');
@@ -695,7 +706,7 @@
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ 
-                            message: userInput,
+                            messages: messages,
                             audioBytes: base64Audio,
                             format: 'wav'
                         }),
@@ -716,6 +727,12 @@
                     assistantMessageDiv.className = 'message assistant-message';
                     assistantMessageDiv.textContent = data.text;
                     openaiResponse.appendChild(assistantMessageDiv);
+                    
+                    // Add to messages array
+                    messages.push({
+                        role: 'assistant',
+                        content: data.text
+                    });
                     
                     // Scroll to bottom
                     openaiResponse.scrollTop = openaiResponse.scrollHeight;
@@ -805,6 +822,12 @@
             userMessageDiv.textContent = userInput;
             openaiResponse.appendChild(userMessageDiv);
             
+            // Add to messages array
+            messages.push({
+                role: 'user',
+                content: userInput
+            });
+            
             // Clear input
             openaiInput.value = '';
             
@@ -821,13 +844,13 @@
             sendToOpenAIButton.disabled = true;
             
             try {
-                // Send request to our server endpoint
+                // Send request to our server endpoint with the entire conversation
                 const response = await fetch('/api/openai', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ message: userInput }),
+                    body: JSON.stringify({ messages: messages }),
                 });
                 
                 if (!response.ok) {
@@ -845,6 +868,12 @@
                 assistantMessageDiv.className = 'message assistant-message';
                 assistantMessageDiv.textContent = data.text;
                 openaiResponse.appendChild(assistantMessageDiv);
+                
+                // Add to messages array
+                messages.push({
+                    role: 'assistant',
+                    content: data.text
+                });
                 
                 // Scroll to bottom
                 openaiResponse.scrollTop = openaiResponse.scrollHeight;
