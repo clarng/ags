@@ -389,10 +389,6 @@
         <div id="openaiResponse" class="openai-response">
             <div class="message assistant-message"></div>
         </div>
-        <div class="photo-preview-container">
-            <div class="photo-preview-label">Last photo taken:</div>
-            <img id="photoPreview" class="photo-preview" alt="Last photo taken">
-        </div>
         <div class="input-container">
             <textarea id="openaiInput" class="openai-input" placeholder="Type your message here..." rows="1"></textarea>
             <button id="sendToOpenAI" class="openai-button">
@@ -421,6 +417,10 @@
 
     <!-- Developer View Content -->
     <div id="developerView" class="view-toggle">
+        <div class="photo-preview-container">
+            <div class="photo-preview-label">Last photo taken:</div>
+            <img id="photoPreview" class="photo-preview" alt="Last photo taken">
+        </div>
         <div class="container">
             <div id="timer">00:00</div>
             <p class="status" id="status">Ready to record</p>
@@ -989,9 +989,18 @@
                 cameraButton.classList.add('recording');
                 statusElement.textContent = 'Accessing camera...';
                 
-                // Access the camera
+                // Access the camera with better quality settings
                 cameraStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' }, // Prefer rear camera
+                    video: { 
+                        facingMode: 'user', // Use front camera for selfies
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        advanced: [
+                            { brightness: 100 },
+                            { contrast: 100 },
+                            { saturation: 100 }
+                        ]
+                    }, 
                     audio: false 
                 });
                 
@@ -1017,9 +1026,30 @@
                 const context = canvas.getContext('2d');
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                // Convert to blob
+                // Apply image processing to improve brightness and quality
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                // Increase brightness and contrast
+                for (let i = 0; i < data.length; i += 4) {
+                    // Increase brightness (add to RGB values)
+                    data[i] = Math.min(255, data[i] + 20);     // Red
+                    data[i + 1] = Math.min(255, data[i + 1] + 20); // Green
+                    data[i + 2] = Math.min(255, data[i + 2] + 20); // Blue
+                    
+                    // Increase contrast
+                    const factor = 1.2;
+                    data[i] = Math.min(255, Math.max(0, (data[i] - 128) * factor + 128));
+                    data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * factor + 128));
+                    data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * factor + 128));
+                }
+                
+                // Put the processed image data back on the canvas
+                context.putImageData(imageData, 0, 0);
+                
+                // Convert to blob with higher quality
                 const photoBlob = await new Promise(resolve => {
-                    canvas.toBlob(resolve, 'image/jpeg', 0.8);
+                    canvas.toBlob(resolve, 'image/jpeg', 0.95); // Increased quality from 0.8 to 0.95
                 });
                 
                 // Stop the camera stream
@@ -1050,16 +1080,29 @@
                 // Convert photo blob to base64
                 const base64Photo = await blobToBase64(photoBlob);
                 
-                // Add user message to the conversation
+                // Create a data URL for the photo
+                const photoUrl = URL.createObjectURL(photoBlob);
+                
+                // Add user message to the conversation with embedded image
                 const userMessageDiv = document.createElement('div');
                 userMessageDiv.className = 'message user-message';
-                userMessageDiv.textContent = '[Photo message]';
+                
+                // Create an image element
+                const imgElement = document.createElement('img');
+                imgElement.src = photoUrl;
+                imgElement.alt = 'User photo';
+                imgElement.style.maxWidth = '100%';
+                imgElement.style.borderRadius = '4px';
+                imgElement.style.marginTop = '5px';
+                
+                // Add the image to the message
+                userMessageDiv.appendChild(imgElement);
                 openaiResponse.appendChild(userMessageDiv);
                 
-                // Add to messages array
+                // Add to messages array with a placeholder text
                 messages.push({
                     role: 'user',
-                    content: '[Photo message]'
+                    content: '[Photo]'
                 });
                 
                 // Add loading message
