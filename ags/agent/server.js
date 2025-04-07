@@ -97,6 +97,8 @@ app.post('/api/openai', async (req, res) => {
     } else {
       response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
+        max_tokens: 1024,
+        store: true,
         messages: [
           { role: 'system', content: SYSTEM_MESSAGE },
           { role: 'user', content: content }

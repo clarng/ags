@@ -1064,24 +1064,11 @@
                 photoPreview.src = photoUrl;
                 photoPreview.classList.add('visible');
                 
-                // Send the photo to the server
-                sendPhotoToOpenAI(photoBlob);
-                
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                statusElement.textContent = 'Error: Could not access camera. Please make sure you have a camera and have granted permission.';
-                cameraButton.classList.remove('recording');
-            }
-        }
-        
-        // Function to send photo to OpenAI API
-        async function sendPhotoToOpenAI(photoBlob) {
-            try {
                 // Convert photo blob to base64
                 const base64Photo = await blobToBase64(photoBlob);
                 
                 // Create a data URL for the photo
-                const photoUrl = URL.createObjectURL(photoBlob);
+                // const photoUrl = URL.createObjectURL(photoBlob); // Removed duplicate declaration
                 
                 // Add user message to the conversation with embedded image
                 const userMessageDiv = document.createElement('div');
@@ -1180,9 +1167,11 @@
                     // Update status
                     statusElement.textContent = 'Error processing photo. Ready for next action.';
                 }
+                
             } catch (error) {
-                console.error('Error processing photo:', error);
-                statusElement.textContent = 'Error processing photo. Ready for next action.';
+                console.error('Error accessing camera:', error);
+                statusElement.textContent = 'Error: Could not access camera. Please make sure you have a camera and have granted permission.';
+                cameraButton.classList.remove('recording');
             }
         }
     </script>
