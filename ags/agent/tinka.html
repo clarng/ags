@@ -414,6 +414,7 @@
         let timerInterval;
         let stream;
         let recordingCount = 0;
+        let recognition; // Web Speech API recognition object
 
         // Cookie functions
         function setCookie(name, value, days) {
@@ -532,6 +533,33 @@
             });
         });
 
+        // Initialize Web Speech API
+        function initializeSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onresult = (event) => {
+                    const transcript = Array.from(event.results)
+                        .map(result => result[0].transcript)
+                        .join('');
+                    
+                    // Update the input field with the transcript
+                    openaiInput.value = transcript;
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    statusElement.textContent = `Speech recognition error: ${event.error}`;
+                };
+            } else {
+                console.warn('Web Speech API is not supported in this browser');
+                statusElement.textContent = 'Speech recognition is not supported in this browser';
+            }
+        }
+
         // Function to start recording
         async function startRecording(e) {
             e.preventDefault(); // Prevent default behavior for touch events
@@ -546,7 +574,12 @@
                 audioChunks = [];
                 
                 // Start recording
-                mediaRecorder.start();
+                // mediaRecorder.start();
+                
+                // Start speech recognition
+                if (recognition) {
+                    recognition.start();
+                }
                 
                 // Start timer
                 startTime = Date.now();
@@ -572,9 +605,13 @@
 
         // Function to stop recording and save file
         function stopAndSaveRecording() {
+            if (recognition) {
+                recognition.stop();
+            }
+
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
-                clearInterval(timerInterval);
+                clearInterval(timerInterval);                
                 
                 // Update UI
                 recordButton.classList.remove('recording');
@@ -842,7 +879,10 @@
         });
         
         // Load conversation on page load
-        document.addEventListener('DOMContentLoaded', loadConversation);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConversation();
+            initializeSpeechRecognition();
+        });
     </script>
 </body>
 </html>
