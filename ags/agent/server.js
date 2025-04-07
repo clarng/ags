@@ -41,10 +41,19 @@ app.get('/', (req, res) => {
 // OpenAI API endpoint
 app.post('/api/openai', async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, audioBytes, format } = req.body;
     
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
+    let content = [];
+    if (message) {
+      content.push({ type: 'text', text: message });
+    }
+
+    if (audioBytes && format) {
+      content.push({ type: 'input_audio', input_audio: { data: audioBytes, format: format } });
+    }
+
+    if (content.length === 0) {
+      return res.status(400).json({ error: 'Either message or audioBytes is required' });
     }
     
     // Get API key from environment variable
@@ -53,25 +62,49 @@ app.post('/api/openai', async (req, res) => {
       return res.status(500).json({ error: 'OpenAI API key not configured' });
     }
 
-    console.error(apiKey);
-    
-    // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: SYSTEM_MESSAGE },
-          { role: 'user', content: message }
-        ],
-        temperature: 1,
-        max_tokens: 1000
-      })
-    });
+    let response;
+    if (audioBytes && format) {
+      // Call OpenAI API
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-audio-preview",
+          modalities: ["text", "audio"],
+          audio: { voice: "alloy", format: "wav" },
+          messages: [
+            { role: 'system', content: SYSTEM_MESSAGE },
+            { role: 'user', content: content }
+          ],
+          temperature: 1,
+          max_tokens: 1000
+        })
+      });
+    } else {
+      // Call OpenAI API
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          modalities: ["text"],
+          audio: { voice: "alloy", format: "wav" },
+          messages: [
+            { role: 'system', content: SYSTEM_MESSAGE },
+            { role: 'user', content: content }
+          ],
+          temperature: 1,
+          max_tokens: 1000
+        })
+      });
+    }
+
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -81,7 +114,7 @@ app.post('/api/openai', async (req, res) => {
         details: errorData 
       });
     }
-    
+
     const data = await response.json();
     const assistantResponse = data.choices[0].message.content;
     
