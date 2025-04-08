@@ -176,7 +176,7 @@ app.post('/api/openai', async (req, res) => {
 // Save conversation endpoint
 app.post('/api/save-conversation', async (req, res) => {
     try {
-        const { messages, conversationId } = req.body;
+        const { messages, conversationId, userId } = req.body;
         
         // Validate required fields
         if (!conversationId) {
@@ -193,7 +193,6 @@ app.post('/api/save-conversation', async (req, res) => {
             });
         }
 
-        const userId = "default_user";
         
         // Save conversation to Supabase
         const savedConversation = await supabaseService.saveConversation(userId, messages, conversationId);
@@ -214,8 +213,7 @@ app.post('/api/save-conversation', async (req, res) => {
 // Get all conversations endpoint
 app.get('/api/get-conversations', async (req, res) => {
     try {
-        console.log('Received request to get conversations');
-        const userId = "default_user";
+        const { userId } = req.body;
         
         // Get conversations from Supabase
         const conversations = await supabaseService.getConversations(userId);
@@ -234,8 +232,7 @@ app.get('/api/get-conversations', async (req, res) => {
 // Get specific conversation endpoint
 app.get('/api/get-conversation/:conversationId', async (req, res) => {
     try {
-        const { conversationId } = req.params;
-        const userId = "default_user";
+        const { conversationId, userId } = req.params;
         
         // Validate conversationId
         if (!conversationId) {
@@ -268,8 +265,7 @@ app.get('/api/get-conversation/:conversationId', async (req, res) => {
 // Delete conversation endpoint
 app.delete('/api/delete-conversation/:conversationId', async (req, res) => {
     try {
-        const { conversationId } = req.params;
-        const userId = "default_user";
+        const { conversationId, userId } = req.params;
         
         // Validate conversationId
         if (!conversationId) {
