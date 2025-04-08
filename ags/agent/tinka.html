@@ -516,36 +516,36 @@
                         messageDiv.className = `message ${msg.role}-message`;
                         
                         // Check if this is a photo message
-                        if (msg.role === 'user' && msg.content === '[Photo]') {
-                            // Try to get the image from localStorage
-                            const imageData = localStorage.getItem(`photo_${index}`);
+                        if (msg.role === 'hidden' && msg.base64Photo == 'localStorage') {
+                            const base64Photo = localStorage.getItem(`photo_${index}`);
+                            photoPreview.src = `data:image/jpeg;base64,${base64Photo}`;
+                            photoPreview.classList.add('visible');
+
+                            const userMessageDiv = document.createElement('div');
+                            userMessageDiv.className = 'message user-message';
                             
-                            if (imageData) {
-                                // Create an image element
-                                const imgElement = document.createElement('img');
-                                imgElement.src = imageData;
-                                imgElement.alt = 'User photo';
-                                imgElement.style.maxWidth = '100%';
-                                imgElement.style.borderRadius = '4px';
-                                imgElement.style.marginTop = '5px';
-                                
-                                // Add the image to the message
-                                messageDiv.appendChild(imgElement);
-                            } else {
-                                // Fallback if image data is not found
-                                messageDiv.textContent = '[Photo]';
-                            }
-                        } else {
+                            // Create an image element
+                            const imgElement = document.createElement('img');
+                            imgElement.src = `data:image/jpeg;base64,${base64Photo}`;
+                            imgElement.alt = 'User photo';
+                            imgElement.style.maxWidth = '100%';
+                            imgElement.style.borderRadius = '4px';
+                            imgElement.style.marginTop = '5px';
+                            
+                            // Add the image to the message
+                            userMessageDiv.appendChild(imgElement);
+                            openaiResponse.appendChild(userMessageDiv);
+                        } else if (msg.role != 'hidden') {
                             // Regular text message
-                            messageDiv.textContent = msg.content;
+                            messageDiv.textContent = msg.text;
+                            openaiResponse.appendChild(messageDiv);
                         }
                         
-                        openaiResponse.appendChild(messageDiv);
                         
                         // Add to messages array
                         messages.push({
                             role: msg.role,
-                            text: msg.content
+                            text: msg.text,
                         });
                     });
                     
@@ -553,6 +553,10 @@
                     scrollToBottom();
                 } catch (e) {
                     console.error('Error loading conversation:', e);
+                    // Clear any potentially corrupted data
+                    deleteCookie('openaiConversation');
+                    messages = [];
+                    openaiResponse.innerHTML = '<div class="message assistant-message"></div>';
                 }
             }
         }
@@ -1092,14 +1096,15 @@
                 // Update UI
                 cameraButton.classList.remove('recording');
                 statusElement.textContent = 'Processing photo...';
+
+                const base64Photo = await blobToBase64(photoBlob);
                 
                 // Display the photo preview
-                const photoUrl = URL.createObjectURL(photoBlob);
-                photoPreview.src = photoUrl;
+                photoPreview.src = `data:image/jpeg;base64,${base64Photo}`;
                 photoPreview.classList.add('visible');
                 
                 // Convert photo blob to base64
-                const base64Photo = await blobToBase64(photoBlob);
+                
                 
                 // Add user message to the conversation with embedded image
                 const userMessageDiv = document.createElement('div');
@@ -1107,7 +1112,7 @@
                 
                 // Create an image element
                 const imgElement = document.createElement('img');
-                imgElement.src = photoUrl;
+                imgElement.src = `data:image/jpeg;base64,${base64Photo}`;
                 imgElement.alt = 'User photo';
                 imgElement.style.maxWidth = '100%';
                 imgElement.style.borderRadius = '4px';
@@ -1121,15 +1126,15 @@
                     role: 'user',
                     base64Photo: base64Photo
                 });
+                const messageIndex = messages.length - 1;
+                localStorage.setItem(`photo_${messageIndex}`, base64Photo);
+                
                 messages.push({
                     role: 'user',
                     text: "What do you think of the sketch?",
                 });
 
-                // Store the image data in localStorage
-                const messageIndex = messages.length - 1;
-                localStorage.setItem(`photo_${messageIndex}`, photoUrl);
-                
+
                 // Add loading message
                 const loadingDiv = document.createElement('div');
                 loadingDiv.className = 'message assistant-message';
@@ -1166,9 +1171,11 @@
                     assistantMessageDiv.className = 'message assistant-message';
                     assistantMessageDiv.textContent = data.text;
                     openaiResponse.appendChild(assistantMessageDiv);
-                    
-                    messages.pop()
-                    messages.pop()
+
+                    messages[messages.length - 1].role = 'hidden';
+                    messages[messages.length - 2].role = 'hidden';
+                    messages[messages.length - 2].base64Photo = 'localStorage';
+
 
                     // Add to messages array
                     messages.push({
