@@ -11,6 +11,8 @@ const openai = new OpenAI({
 
 
 const app = express();
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ limit: '1mb', extended: true }));
 const PORT = process.env.PORT || 3000;
 
 // System message for OpenAI API
@@ -57,11 +59,18 @@ app.post('/api/openai', async (req, res) => {
     
     hasAudio = false;
     for (const message of messages) {
-
-      // if (audioBytes && format) {
-      //   content.push({ type: 'input_audio', input_audio: { data: audioBytes, format: format } });
-      // }
-      content.push({ type: 'text', text: message.content });
+      if (message.base64Photo) {
+        content.push({
+          type: "image_url",
+          image_url: {
+            url: `data:image/jpeg;base64,${message.base64Photo}`,
+          },
+        });
+        console.log("img")
+      } else if (message.text) {
+        content.push({ type: 'text', text: message.text });
+        console.log(message.text)
+      }
     }
 
     // Get API key from environment variable

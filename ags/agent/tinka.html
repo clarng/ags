@@ -421,12 +421,12 @@
             <div class="photo-preview-label">Last photo taken:</div>
             <img id="photoPreview" class="photo-preview" alt="Last photo taken">
         </div>
-        <div class="container">
-            <div id="timer">00:00</div>
-            <p class="status" id="status">Ready to record</p>
-            
-            <audio id="audioElement" controls></audio>
-        </div>
+    <div class="container">
+        <div id="timer">00:00</div>
+        <p class="status" id="status">Ready to record</p>
+        
+        <audio id="audioElement" controls></audio>
+    </div>
 
         <div class="recording-list" id="recordingList">
             <h3>Your Recordings</h3>
@@ -511,16 +511,41 @@
                     openaiResponse.innerHTML = '';
                     messages = []; // Clear existing messages
                     
-                    conversation.forEach(msg => {
+                    conversation.forEach((msg, index) => {
                         const messageDiv = document.createElement('div');
                         messageDiv.className = `message ${msg.role}-message`;
-                        messageDiv.textContent = msg.content;
+                        
+                        // Check if this is a photo message
+                        if (msg.role === 'user' && msg.content === '[Photo]') {
+                            // Try to get the image from localStorage
+                            const imageData = localStorage.getItem(`photo_${index}`);
+                            
+                            if (imageData) {
+                                // Create an image element
+                                const imgElement = document.createElement('img');
+                                imgElement.src = imageData;
+                                imgElement.alt = 'User photo';
+                                imgElement.style.maxWidth = '100%';
+                                imgElement.style.borderRadius = '4px';
+                                imgElement.style.marginTop = '5px';
+                                
+                                // Add the image to the message
+                                messageDiv.appendChild(imgElement);
+                            } else {
+                                // Fallback if image data is not found
+                                messageDiv.textContent = '[Photo]';
+                            }
+                        } else {
+                            // Regular text message
+                            messageDiv.textContent = msg.content;
+                        }
+                        
                         openaiResponse.appendChild(messageDiv);
                         
                         // Add to messages array
                         messages.push({
                             role: msg.role,
-                            content: msg.content
+                            text: msg.content
                         });
                     });
                     
@@ -543,6 +568,14 @@
             messages = []; // Clear messages array
             deleteCookie('openaiConversation');
             saveConversation(); // Save the initial message
+            
+            // Clear all photo data from localStorage
+            // for (let i = 0; i < localStorage.length; i++) {
+            //     const key = localStorage.key(i);
+            //     if (key.startsWith('photo_')) {
+            //         localStorage.removeItem(key);
+            //     }
+            // }
             
             // Hide photo preview when starting a new conversation
             photoPreview.classList.remove('visible');
@@ -656,11 +689,11 @@
                 
                 // Handle data availability
                 if (mediaRecorder) {
-                    mediaRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0) {
-                            audioChunks.push(event.data);
-                        }
-                    };
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
                 }
                 
             } catch (error) {
@@ -671,9 +704,9 @@
 
         // Function to stop recording and save file
         function stopAndSaveRecording() {
-            // Update UI
-            recordButton.classList.remove('recording');
-            recordButton.title = 'Press and hold to record';
+                // Update UI
+                recordButton.classList.remove('recording');
+                recordButton.title = 'Press and hold to record';
             openaiInput.classList.remove('recording');
             clearInterval(timerInterval);                
 
@@ -744,7 +777,7 @@
                 // Add to messages array
                 messages.push({
                     role: 'user',
-                    content: messageContent
+                    text: messageContent
                 });
                 
                 // Add loading message
@@ -789,7 +822,7 @@
                     // Add to messages array
                     messages.push({
                         role: 'assistant',
-                        content: data.text
+                        text: data.text
                     });
                     
                     // Scroll to bottom
@@ -870,7 +903,7 @@
         async function sendToOpenAI() {
             const userInput = openaiInput.value.trim();
             if (!userInput) {
-                alert('Please enter a message');
+                alert('Hi! Please enter a message (^ ^)');
                 return;
             }
             
@@ -883,7 +916,7 @@
             // Add to messages array
             messages.push({
                 role: 'user',
-                content: userInput
+                text: userInput
             });
             
             // Clear input
@@ -930,7 +963,7 @@
                 // Add to messages array
                 messages.push({
                     role: 'assistant',
-                    content: data.text
+                    text: data.text
                 });
                 
                 // Scroll to bottom
@@ -1067,9 +1100,6 @@
                 // Convert photo blob to base64
                 const base64Photo = await blobToBase64(photoBlob);
                 
-                // Create a data URL for the photo
-                // const photoUrl = URL.createObjectURL(photoBlob); // Removed duplicate declaration
-                
                 // Add user message to the conversation with embedded image
                 const userMessageDiv = document.createElement('div');
                 userMessageDiv.className = 'message user-message';
@@ -1086,11 +1116,18 @@
                 userMessageDiv.appendChild(imgElement);
                 openaiResponse.appendChild(userMessageDiv);
                 
-                // Add to messages array with a placeholder text
                 messages.push({
                     role: 'user',
-                    content: '[Photo]'
+                    base64Photo: base64Photo
                 });
+                messages.push({
+                    role: 'user',
+                    text: "What do you think of the sketch?",
+                });
+
+                // Store the image data in localStorage
+                const messageIndex = messages.length - 1;
+                localStorage.setItem(`photo_${messageIndex}`, photoUrl);
                 
                 // Add loading message
                 const loadingDiv = document.createElement('div');
@@ -1110,8 +1147,6 @@
                         },
                         body: JSON.stringify({ 
                             messages: messages,
-                            imageBytes: base64Photo,
-                            format: 'jpeg'
                         }),
                     });
                     
@@ -1131,10 +1166,13 @@
                     assistantMessageDiv.textContent = data.text;
                     openaiResponse.appendChild(assistantMessageDiv);
                     
+                    messages.pop()
+                    messages.pop()
+
                     // Add to messages array
                     messages.push({
                         role: 'assistant',
-                        content: data.text
+                        text: data.text
                     });
                     
                     // Scroll to bottom
@@ -1148,7 +1186,7 @@
                     
                 } catch (error) {
                     console.error('Error:', error);
-                    
+
                     // Remove loading message
                     openaiResponse.removeChild(loadingDiv);
                     
