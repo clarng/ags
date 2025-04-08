@@ -710,7 +710,6 @@
             openaiInput.classList.remove('recording');
             clearInterval(timerInterval);                
 
-            console.log("done recognition")
             if (recognition) {
                 recognition.abort(); // Forcefully abort if needed
                 recognition.stop();  // Also call stop just in case
@@ -746,6 +745,8 @@
                     timerElement.textContent = '00:00';
                 };
             }
+
+            sendToOpenAI();
         }
 
         // Function to send audio to OpenAI API
@@ -903,7 +904,7 @@
         async function sendToOpenAI() {
             const userInput = openaiInput.value.trim();
             if (!userInput) {
-                alert('Hi! Please enter a message (^ ^)');
+                // alert('Hi! Please enter a message (^ ^)');
                 return;
             }
             
