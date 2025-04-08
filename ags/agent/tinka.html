@@ -704,6 +704,13 @@
 
         // Start a new conversation
         function startNewConversation() {
+            // Ask for confirmation if there are existing messages
+            if (messages.length > 0) {
+                if (!confirm('Starting a new session will clear the current conversation. Do you want to continue?')) {
+                    return; // User cancelled
+                }
+            }
+            
             // Generate new conversation ID
             conversationId = generateConversationId();
             setCookie('tinka_conversationId', conversationId, 7); // Save for 7 days
@@ -1518,6 +1525,9 @@
 
         // Function to delete a conversation
         async function deleteConversation(convId) {
+            if (messages.length == 0) {
+                return
+            }
             if (!confirm('Are you sure you want to delete this conversation?')) {
                 return;
             }
@@ -1548,6 +1558,11 @@
         // Add this function
         function updateEnvironment(environment) {
             if (!environment) return; // Don't update if environment is null
+            
+            if (currentEnvironment && currentEnvironment !== environment) {
+                startNewConversation();
+            }
+            
             currentEnvironment = environment;
             setCookie('tinka_environment', environment, 7); // Save for 7 days
             document.querySelectorAll('.environment-button').forEach(btn => {
