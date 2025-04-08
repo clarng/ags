@@ -4,6 +4,7 @@ const fetch = require('node-fetch');
 const path = require('path');
 const fs = require('fs');
 const { OpenAI } = require('openai');
+const SupabaseService = require('./supabaseService');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY // Get API key from environment variable
@@ -14,6 +15,12 @@ const app = express();
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ limit: '1mb', extended: true }));
 const PORT = process.env.PORT || 3000;
+
+// Initialize Supabase service
+const supabaseService = new SupabaseService(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_KEY
+);
 
 // System message for OpenAI API
 const SYSTEM_MESSAGE = `
@@ -126,6 +133,44 @@ app.post('/api/openai', async (req, res) => {
     console.error('Error:', error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// Save conversation endpoint
+app.post('/api/save-conversation', async (req, res) => {
+    try {
+        const { messages, conversationId } = req.body;
+        
+        // Validate required fields
+        if (!conversationId) {
+            return res.status(400).json({
+                success: false,
+                error: 'conversationId is required'
+            });
+        }
+        
+        if (!messages || !Array.isArray(messages)) {
+            return res.status(400).json({
+                success: false,
+                error: 'messages array is required'
+            });
+        }
+
+        const userId = "default_user";
+        
+        // Save conversation to Supabase
+        const savedConversation = await supabaseService.saveConversation(userId, messages, conversationId);
+        
+        res.json({
+            success: true,
+            conversationId: savedConversation.id
+        });
+    } catch (error) {
+        console.error('Error saving conversation:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 // Start the server

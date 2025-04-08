@@ -347,6 +347,17 @@
             background-color: #0b7dda;
             transform: rotate(45deg);
         }
+        .save-icon {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .save-icon:hover {
+            background-color: #45a049;
+            transform: scale(1.1);
+        }
+        .save-icon.saving {
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
 <body>
@@ -355,6 +366,13 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>
+        <button id="saveConversationBtn" class="icon-button save-icon" title="Save Conversation">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
             </svg>
         </button>
         <div class="icon-button" id="settingsIcon">
@@ -443,6 +461,7 @@
         const timerElement = document.getElementById('timer');
         const statusElement = document.getElementById('status');
         const recordingsContainer = document.getElementById('recordingsContainer');
+        const saveConversationBtn = document.getElementById('saveConversationBtn');
         
         // OpenAI elements
         const openaiInput = document.getElementById('openaiInput');
@@ -470,6 +489,7 @@
         let recognition; // Web Speech API recognition object
         let messages = []; // Array to store conversation history
         let cameraStream; // For camera access
+        let conversationId = null; // Conversation ID for Supabase
 
         // Cookie functions
         function setCookie(name, value, days) {
@@ -566,20 +586,40 @@
             setCookie('openaiConversation', JSON.stringify(messages), 7); // Save for 7 days
         }
 
+        // Function to generate a new conversation ID
+        function generateConversationId() {
+            // Generate a random integer between 100000 and 999999
+            return Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
+        }
+
+        // Function to get or create conversation ID
+        function getOrCreateConversationId() {
+            // Try to get from cookie first
+            let storedId = getCookie('tinka_conversationId');
+            if (!storedId) {
+                // Generate a new conversation ID if none exists
+                storedId = generateConversationId();
+                setCookie('tinka_conversationId', storedId, 7); // Save for 7 days
+            } else {
+                // Convert stored ID to number if it's a string
+                storedId = parseInt(storedId, 10);
+                if (storedId == NaN) {
+                    console.error(`Invalid conversation ID ${storedId}`);
+                }
+            }
+            
+            return storedId;
+        }
+
         // Start a new conversation
         function startNewConversation() {
+            // Generate new conversation ID
+            conversationId = generateConversationId();
+            setCookie('tinka_conversationId', conversationId, 7); // Save for 7 days
+            
             openaiResponse.innerHTML = '<div class="message assistant-message"></div>';
             messages = []; // Clear messages array
-            deleteCookie('openaiConversation');
             saveConversation(); // Save the initial message
-            
-            // Clear all photo data from localStorage
-            // for (let i = 0; i < localStorage.length; i++) {
-            //     const key = localStorage.key(i);
-            //     if (key.startsWith('photo_')) {
-            //         localStorage.removeItem(key);
-            //     }
-            // }
             
             // Hide photo preview when starting a new conversation
             photoPreview.classList.remove('visible');
@@ -1014,10 +1054,12 @@
             }
         });
         
-        // Load conversation on page load
+        // Initialize conversation ID on page load
         document.addEventListener('DOMContentLoaded', () => {
             loadConversation();
             initializeSpeechRecognition();
+            conversationId = getOrCreateConversationId(); // Ini
+            console.log(conversationId);
         });
 
         // Function to take a photo using the camera
@@ -1220,6 +1262,58 @@
                 cameraButton.classList.remove('recording');
             }
         }
+
+        // Function to save conversation to Supabase
+        async function saveConversationToSupabase() {
+            try {
+                // Show saving state
+                saveConversationBtn.classList.add('saving');
+                saveConversationBtn.title = 'Saving...';
+                
+                // Get current conversation ID
+                const currentConversationId = conversationId;
+                
+                // Get current conversation data
+                const conversationData = {
+                    messages: messages,
+                    conversationId: currentConversationId,
+                };
+                
+                console.log(conversationId);
+                // Send to server endpoint
+                const response = await fetch('/api/save-conversation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(conversationData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to save conversation');
+                }
+                
+                const result = await response.json();
+                
+                // Show success message
+                statusElement.textContent = 'Conversation saved successfully!';
+                setTimeout(() => {
+                    statusElement.textContent = 'Ready to record';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error saving conversation:', error);
+                statusElement.textContent = 'Error saving conversation. Please try again.';
+            } finally {
+                // Reset button state
+                saveConversationBtn.classList.remove('saving');
+                saveConversationBtn.title = 'Save Conversation';
+            }
+        }
+        
+        // Add event listener for save button
+        saveConversationBtn.addEventListener('click', saveConversationToSupabase);
     </script>
 </body>
 </html>
