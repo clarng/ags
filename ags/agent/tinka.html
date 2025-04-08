@@ -498,8 +498,9 @@
     
     <!-- Environment Selection Buttons -->
     <div class="environment-buttons">
-        <button id="comicEnvironmentBtn" class="environment-button " data-environment="comic">COMIC</button>
-        <button id="rpgEnvironmentBtn" class="environment-button" data-environment="rpg">RPG</button>
+        <button id="comicEnvironmentBtn" class="environment-button " data-environment="comic">Comic</button>
+        <button id="rpgEnvironmentBtn" class="environment-button" data-environment="rpg">Rpg</button>
+        <button id="drawEnvironmentBtn" class="environment-button" data-environment="draw">Draw</button>
     </div>
     
     <!-- OpenAI API Section - Moved to top and restructured -->
@@ -1620,6 +1621,7 @@
         // Add event listeners for environment buttons
         document.getElementById('comicEnvironmentBtn').addEventListener('click', () => updateEnvironment('comic'));
         document.getElementById('rpgEnvironmentBtn').addEventListener('click', () => updateEnvironment('rpg'));
+        document.getElementById('drawEnvironmentBtn').addEventListener('click', () => updateEnvironment('draw'));
     </script>
 </body>
 </html>
