@@ -19,20 +19,36 @@ class SupabaseService {
         try {
             const conversationData = {
                 user_id: userId,
-                id: conversationId,
                 messages: messages,
                 updated_at: new Date().toISOString()
             };
 
-            // Create new conversation
-            const { data, error } = await this.supabase
-                .from('conversations')
-                .insert(conversationData)
-                .select()
-                .single();
+            let result;
+            
+            if (conversationId) {
+                // Update existing conversation
+                const { data, error } = await this.supabase
+                    .from('conversations')
+                    .update(conversationData)
+                    .eq('id', conversationId)
+                    .select()
+                    .single();
 
-            if (error) throw error;
-            return data;
+                if (error) throw error;
+                result = data;
+            } else {
+                // Create new conversation
+                const { data, error } = await this.supabase
+                    .from('conversations')
+                    .insert(conversationData)
+                    .select()
+                    .single();
+
+                if (error) throw error;
+                result = data;
+            }
+
+            return result;
 
         } catch (error) {
             console.error('Error saving conversation:', error);
