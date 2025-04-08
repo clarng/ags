@@ -173,6 +173,88 @@ app.post('/api/save-conversation', async (req, res) => {
     }
 });
 
+// Get all conversations endpoint
+app.get('/api/get-conversations', async (req, res) => {
+    try {
+        const userId = "default_user";
+        
+        // Get conversations from Supabase
+        const conversations = await supabaseService.getConversations(userId);
+        
+        res.json(conversations);
+    } catch (error) {
+        console.error('Error getting conversations:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Get specific conversation endpoint
+app.get('/api/get-conversation/:conversationId', async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        const userId = "default_user";
+        
+        // Validate conversationId
+        if (!conversationId) {
+            return res.status(400).json({
+                success: false,
+                error: 'conversationId is required'
+            });
+        }
+        
+        // Get conversation from Supabase
+        const conversation = await supabaseService.getConversation(userId, conversationId);
+        
+        if (!conversation) {
+            return res.status(404).json({
+                success: false,
+                error: 'Conversation not found'
+            });
+        }
+        
+        res.json(conversation);
+    } catch (error) {
+        console.error('Error getting conversation:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Delete conversation endpoint
+app.delete('/api/delete-conversation/:conversationId', async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        const userId = "default_user";
+        
+        // Validate conversationId
+        if (!conversationId) {
+            return res.status(400).json({
+                success: false,
+                error: 'conversationId is required'
+            });
+        }
+        
+        // Delete conversation from Supabase
+        await supabaseService.deleteConversation(userId, conversationId);
+        
+        res.json({
+            success: true,
+            message: 'Conversation deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error deleting conversation:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
