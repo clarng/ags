@@ -72,7 +72,7 @@ app.get('/', (req, res) => {
 // OpenAI API endpoint
 app.post('/api/openai', async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { messages, environment } = req.body;
     
     let content = [];
 
@@ -102,6 +102,11 @@ app.post('/api/openai', async (req, res) => {
       return res.status(500).json({ error: 'OpenAI API key not configured' });
     }
 
+    let systemMessage = SYSTEM_MESSAGE;
+    if (environment === 'rpg') {
+      systemMessage = SYSTEM_MESSAGE_RPG;
+    }
+
     let response;
     if (hasAudio) {
       const url = "https://cdn.openai.com/API/docs/audio/alloy.wav";
@@ -114,7 +119,7 @@ app.post('/api/openai', async (req, res) => {
         modalities: ["text", "audio"],
         audio: { voice: "alloy", format: "wav" },
         messages: [
-          { role: 'system', content: SYSTEM_MESSAGE },
+          { role: 'system', content: systemMessage },
           {
             role: "user",
             content: [
@@ -132,7 +137,7 @@ app.post('/api/openai', async (req, res) => {
         max_tokens: 1024,
         store: true,
         messages: [
-          { role: 'system', content: SYSTEM_MESSAGE },
+          { role: 'system', content: systemMessage },
           { role: 'user', content: content }
         ]
       });
