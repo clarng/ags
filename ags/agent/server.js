@@ -176,17 +176,19 @@ app.post('/api/save-conversation', async (req, res) => {
 // Get all conversations endpoint
 app.get('/api/get-conversations', async (req, res) => {
     try {
+        console.log('Received request to get conversations');
         const userId = "default_user";
         
         // Get conversations from Supabase
         const conversations = await supabaseService.getConversations(userId);
         
+        console.log('Successfully retrieved conversations:', conversations);
         res.json(conversations);
     } catch (error) {
-        console.error('Error getting conversations:', error);
+        console.error('Error in get-conversations endpoint:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: error.message || 'Failed to retrieve conversations'
         });
     }
 });

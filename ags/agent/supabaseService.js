@@ -47,16 +47,27 @@ class SupabaseService {
      */
     async getConversations(userId) {
         try {
+            console.log('Fetching conversations for userId:', userId);
+            
+            if (!userId) {
+                throw new Error('userId is required');
+            }
+
             const { data, error } = await this.supabase
                 .from('conversations')
                 .select('*')
                 .eq('user_id', userId)
                 .order('updated_at', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error:', error);
+                throw error;
+            }
+
+            console.log('Retrieved conversations:', data);
             return data;
         } catch (error) {
-            console.error('Error getting conversations:', error);
+            console.error('Error in getConversations:', error);
             throw error;
         }
     }

@@ -567,61 +567,68 @@
         }
 
         // Load conversation from cookie on page load
-        function loadConversation() {
-            const savedConversation = getCookie('openaiConversation');
-            if (savedConversation) {
-                try {
-                    const conversation = JSON.parse(savedConversation);
-                    openaiResponse.innerHTML = '';
-                    messages = []; // Clear existing messages
-                    
-                    conversation.forEach((msg, index) => {
-                        const messageDiv = document.createElement('div');
-                        messageDiv.className = `message ${msg.role}-message`;
-                        
-                        // Check if this is a photo message
-                        if (msg.role === 'hidden' && msg.base64Photo == 'localStorage') {
-                            const base64Photo = localStorage.getItem(`photo_${index}`);
-                            photoPreview.src = `data:image/jpeg;base64,${base64Photo}`;
-                            photoPreview.classList.add('visible');
-
-                            const userMessageDiv = document.createElement('div');
-                            userMessageDiv.className = 'message user-message';
-                            
-                            // Create an image element
-                            const imgElement = document.createElement('img');
-                            imgElement.src = `data:image/jpeg;base64,${base64Photo}`;
-                            imgElement.alt = 'User photo';
-                            imgElement.style.maxWidth = '100%';
-                            imgElement.style.borderRadius = '4px';
-                            imgElement.style.marginTop = '5px';
-                            
-                            // Add the image to the message
-                            userMessageDiv.appendChild(imgElement);
-                            openaiResponse.appendChild(userMessageDiv);
-                        } else if (msg.role != 'hidden') {
-                            // Regular text message
-                            messageDiv.textContent = msg.text;
-                            openaiResponse.appendChild(messageDiv);
-                        }
-                        
-                        
-                        // Add to messages array
-                        messages.push({
-                            role: msg.role,
-                            text: msg.text,
-                        });
-                    });
-                    
-                    // Scroll to bottom
-                    scrollToBottom();
-                } catch (e) {
-                    console.error('Error loading conversation:', e);
-                    // Clear any potentially corrupted data
-                    deleteCookie('openaiConversation');
-                    messages = [];
-                    openaiResponse.innerHTML = '<div class="message assistant-message"></div>';
+        async function loadConversation() {
+            try {
+                console.log('Loading conversation...');
+                const response = await fetch('/api/get-conversations');
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load conversation');
                 }
+                
+                console.log('Received conversation data:', data);
+                
+                if (!data || !Array.isArray(data)) {
+                    throw new Error('Invalid conversation data received');
+                }
+                
+                // Get the conversations container
+                const conversationsContainer = document.getElementById('conversationsContainer');
+                
+                if (data.length === 0) {
+                    conversationsContainer.innerHTML = '<p>No conversations found.</p>';
+                    return;
+                }
+                
+                // Clear existing content
+                conversationsContainer.innerHTML = '';
+                
+                // Add each conversation to the container
+                data.forEach(conversation => {
+                    const conversationItem = document.createElement('div');
+                    conversationItem.className = `conversation-item ${conversation.conversation_id === conversationId ? 'active' : ''}`;
+                    conversationItem.dataset.id = conversation.id;
+                    
+                    conversationItem.innerHTML = `
+                        <div>
+                            <div class="conversation-id">ID: ${conversation.id}</div>
+                            <div class="conversation-date">${new Date(conversation.updated_at).toLocaleString()}</div>
+                        </div>
+                        <div class="conversation-actions">
+                            <button class="conversation-action-btn" title="Load Conversation" onclick="loadConversationById('${conversation.conversation_id}')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                            </button>
+                            <button class="conversation-action-btn" title="Delete Conversation" onclick="deleteConversation('${conversation.conversation_id}')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    
+                    conversationsContainer.appendChild(conversationItem);
+                });
+                
+            } catch (error) {
+                console.error('Error loading conversation:', error);
+                const conversationsContainer = document.getElementById('conversationsContainer');
+                conversationsContainer.innerHTML = `<p>Error loading conversations: ${error.message}</p>`;
             }
         }
 
@@ -687,18 +694,22 @@
 
         // Toggle settings dropdown
         settingsIcon.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent event from bubbling up
             settingsDropdown.classList.toggle('active');
         });
 
         // Close dropdown when clicking outside
-        document.addEventListener('click', () => {
-            settingsDropdown.classList.remove('active');
+        document.addEventListener('click', (e) => {
+            // Only close if clicking outside both the icon and dropdown
+            if (!settingsIcon.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
         });
 
         // Handle view switching
         settingsOptions.forEach(option => {
-            option.addEventListener('click', () => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent event from bubbling up
                 const view = option.getAttribute('data-view');
                 
                 // Update active state
@@ -1104,7 +1115,6 @@
             loadConversation();
             initializeSpeechRecognition();
             conversationId = getOrCreateConversationId(); // Ini
-            console.log(conversationId);
         });
 
         // Function to take a photo using the camera
@@ -1379,8 +1389,8 @@
                     <div class="conversation-item ${conv.conversation_id === conversationId ? 'active' : ''}" 
                          data-id="${conv.conversation_id}">
                         <div>
-                            <div class="conversation-id">ID: ${conv.conversation_id}</div>
-                            <div class="conversation-date">${new Date(conv.updated_at).toLocaleString()}</div>
+                            <div class="conversation-id">ID: ${conv.id}</div>
+                            <div class="conversation-date">${conv.updated_at}</div>
                         </div>
                         <div class="conversation-actions">
                             <button class="conversation-action-btn" title="Load Conversation" onclick="loadConversationById('${conv.conversation_id}')">
