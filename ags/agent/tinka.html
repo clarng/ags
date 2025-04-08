@@ -1227,6 +1227,11 @@
             if (currentEnvironment) {
                 updateEnvironment(currentEnvironment);
             }
+            // Load user ID from cookie and update input field
+            const storedUserId = getCookie('tinka_userId');
+            if (storedUserId) {
+                userIdInput.value = storedUserId;
+            }
         });
 
         // Function to take a photo using the camera
@@ -1652,8 +1657,22 @@
 
         // Add this function to get the current user ID
         function getCurrentUserId() {
-            return userIdInput.value.trim() || 'default_user';
+            // Try to get from cookie first
+            let storedId = getCookie('tinka_userId');
+            if (!storedId) {
+                // Get from input field
+                storedId = userIdInput.value.trim() || 'default_user';
+                // Save to cookie
+                setCookie('tinka_userId', storedId, 7); // Save for 7 days
+            }
+            return storedId;
         }
+
+        // Add event listener for user ID input changes
+        userIdInput.addEventListener('change', function() {
+            const newUserId = this.value.trim() || 'default_user';
+            setCookie('tinka_userId', newUserId, 7); // Save for 7 days
+        });
     </script>
 </body>
 </html>
