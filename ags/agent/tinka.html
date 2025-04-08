@@ -395,6 +395,29 @@
         .save-icon.saving {
             animation: spin 1s linear infinite;
         }
+        .environment-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .environment-button {
+            padding: 10px 20px;
+            border: 2px solid #2196F3;
+            background-color: white;
+            color: #2196F3;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .environment-button:hover {
+            background-color: #e3f2fd;
+        }
+        .environment-button.active {
+            background-color: #2196F3;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -438,6 +461,12 @@
     </div>
 
     <h1>Tinka</h1>
+    
+    <!-- Environment Selection Buttons -->
+    <div class="environment-buttons">
+        <button id="comicEnvironmentBtn" class="environment-button " data-environment="comic">COMIC</button>
+        <button id="rpgEnvironmentBtn" class="environment-button" data-environment="rpg">RPG</button>
+    </div>
     
     <!-- OpenAI API Section - Moved to top and restructured -->
     <div class="openai-section">
@@ -534,6 +563,7 @@
         let messages = []; // Array to store conversation history
         let cameraStream; // For camera access
         let conversationId = null; // Conversation ID for Supabase
+        let currentEnvironment = null; // No default environment
 
         // Cookie functions
         function setCookie(name, value, days) {
@@ -659,6 +689,17 @@
             }
             
             return storedId;
+        }
+
+        // Function to get or create environment
+        function getOrCreateEnvironment() {
+            // Try to get from cookie first
+            let storedEnvironment = getCookie('tinka_environment');
+            if (!storedEnvironment) {
+                // No default, return null
+                return null;
+            }
+            return storedEnvironment;
         }
 
         // Start a new conversation
@@ -899,7 +940,8 @@
                         body: JSON.stringify({ 
                             messages: messages,
                             audioBytes: base64Audio,
-                            format: 'wav'
+                            format: 'wav',
+                            environment: currentEnvironment
                         }),
                     });
                     
@@ -1035,13 +1077,16 @@
             sendToOpenAIButton.disabled = true;
             
             try {
-                // Send request to our server endpoint with the entire conversation
+                // Send request to our server endpoint with the entire conversation and mode
                 const response = await fetch('/api/openai', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ messages: messages }),
+                    body: JSON.stringify({ 
+                        messages: messages,
+                        environment: currentEnvironment
+                    }),
                 });
                 
                 if (!response.ok) {
@@ -1109,11 +1154,15 @@
             }
         });
         
-        // Initialize conversation ID on page load
+        // Initialize conversation ID and environment on page load
         document.addEventListener('DOMContentLoaded', () => {
             loadConversation();
             initializeSpeechRecognition();
-            conversationId = getOrCreateConversationId(); // Ini
+            conversationId = getOrCreateConversationId();
+            currentEnvironment = getOrCreateEnvironment();
+            if (currentEnvironment) {
+                updateEnvironment(currentEnvironment);
+            }
         });
 
         // Function to take a photo using the camera
@@ -1495,6 +1544,20 @@
                 statusElement.textContent = 'Error deleting conversation. Please try again.';
             }
         }
+
+        // Add this function
+        function updateEnvironment(environment) {
+            if (!environment) return; // Don't update if environment is null
+            currentEnvironment = environment;
+            setCookie('tinka_environment', environment, 7); // Save for 7 days
+            document.querySelectorAll('.environment-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.environment === environment);
+            });
+        }
+        
+        // Add event listeners for environment buttons
+        document.getElementById('comicEnvironmentBtn').addEventListener('click', () => updateEnvironment('comic'));
+        document.getElementById('rpgEnvironmentBtn').addEventListener('click', () => updateEnvironment('rpg'));
     </script>
 </body>
 </html>
