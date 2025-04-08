@@ -709,6 +709,8 @@
                 if (!confirm('Starting a new session will clear the current conversation. Do you want to continue?')) {
                     return; // User cancelled
                 }
+                // Save current conversation before resetting
+                saveConversationToSupabase();
             }
             
             // Generate new conversation ID
@@ -1562,7 +1564,7 @@
             if (currentEnvironment && currentEnvironment !== environment) {
                 startNewConversation();
             }
-            
+
             currentEnvironment = environment;
             setCookie('tinka_environment', environment, 7); // Save for 7 days
             document.querySelectorAll('.environment-button').forEach(btn => {
