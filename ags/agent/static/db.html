@@ -21,9 +21,16 @@
             flex-direction: column;
             gap: 10px;
         }
+        .selectors {
+            display: flex;
+            gap: 10px;
+        }
         select, textarea {
             padding: 8px;
             font-size: 14px;
+        }
+        select {
+            flex: 1;
         }
         textarea {
             min-height: 100px;
@@ -73,9 +80,15 @@
         <h1>Database Query Interface</h1>
         
         <div class="query-section">
-            <select id="databaseSelect">
-                <option value="">Loading databases...</option>
-            </select>
+            <div class="selectors">
+                <select id="databaseSelect" onchange="loadTables()">
+                    <option value="">Loading databases...</option>
+                </select>
+                
+                <select id="tableSelect" onchange="updateQuery()">
+                    <option value="">Select a table...</option>
+                </select>
+            </div>
             
             <textarea id="queryInput" placeholder="Enter your SQL query here...">SELECT *</textarea>
             
@@ -111,14 +124,46 @@
                 // Select first database by default
                 if (databases.length > 0) {
                     select.value = databases[0].database_name;
+                    loadTables();
                 }
             } catch (error) {
                 showError('Failed to load databases: ' + error.message);
             }
         }
 
+        async function loadTables() {
+            const database = document.getElementById('databaseSelect').value;
+            if (!database) return;
+
+            try {
+                const response = await fetch(`/api/tables?database=${encodeURIComponent(database)}`);
+                const tables = await response.json();
+                
+                const select = document.getElementById('tableSelect');
+                select.innerHTML = '<option value="">Select a table...</option>' +
+                    tables.map(table => 
+                        `<option value="${table.table_name}">${table.table_name}</option>`
+                    ).join('');
+                
+                if (tables.length > 0) {
+                    select.value = tables[0].table_name;
+                    updateQuery();
+                }
+            } catch (error) {
+                showError('Failed to load tables: ' + error.message);
+            }
+        }
+
+        function updateQuery() {
+            const table = document.getElementById('tableSelect').value;
+            if (table) {
+                document.getElementById('queryInput').value = `SELECT * FROM ${table}`;
+            }
+        }
+
         async function runQuery() {
             const database = document.getElementById('databaseSelect').value;
+            const table = document.getElementById('tableSelect').value;
             const query = document.getElementById('queryInput').value;
             
             if (!database) {
@@ -132,7 +177,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ database, query })
+                    body: JSON.stringify({ database, query, table })
                 });
                 
                 const data = await response.json();
