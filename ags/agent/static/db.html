@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Query Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .query-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        select, textarea {
+            padding: 8px;
+            font-size: 14px;
+        }
+        textarea {
+            min-height: 100px;
+            font-family: monospace;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+            position: sticky;
+            top: 0;
+        }
+        .results-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+            padding: 10px;
+            background-color: #ffebee;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Query Interface</h1>
+        
+        <div class="query-section">
+            <select id="databaseSelect">
+                <option value="">Loading databases...</option>
+            </select>
+            
+            <textarea id="queryInput" placeholder="Enter your SQL query here...">SELECT *</textarea>
+            
+            <button onclick="runQuery()">Run Query</button>
+        </div>
+
+        <div id="errorContainer"></div>
+        
+        <div class="results-container">
+            <table id="resultsTable">
+                <thead>
+                    <tr id="headerRow"></tr>
+                </thead>
+                <tbody id="resultsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Load databases when page loads
+        window.addEventListener('load', loadDatabases);
+
+        async function loadDatabases() {
+            try {
+                const response = await fetch('/api/databases');
+                const databases = await response.json();
+                
+                const select = document.getElementById('databaseSelect');
+                select.innerHTML = databases.map(db => 
+                    `<option value="${db.database_name}">${db.database_name}</option>`
+                ).join('');
+                
+                // Select first database by default
+                if (databases.length > 0) {
+                    select.value = databases[0].database_name;
+                }
+            } catch (error) {
+                showError('Failed to load databases: ' + error.message);
+            }
+        }
+
+        async function runQuery() {
+            const database = document.getElementById('databaseSelect').value;
+            const query = document.getElementById('queryInput').value;
+            
+            if (!database) {
+                showError('Please select a database');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ database, query })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+                
+                displayResults(data);
+            } catch (error) {
+                showError('Query failed: ' + error.message);
+            }
+        }
+
+        function displayResults(data) {
+            const headerRow = document.getElementById('headerRow');
+            const resultsBody = document.getElementById('resultsBody');
+            
+            // Clear previous results
+            headerRow.innerHTML = '';
+            resultsBody.innerHTML = '';
+            
+            // Add headers
+            data.columns.forEach(column => {
+                const th = document.createElement('th');
+                th.textContent = column;
+                headerRow.appendChild(th);
+            });
+            
+            // Add rows
+            data.rows.forEach(row => {
+                const tr = document.createElement('tr');
+                data.columns.forEach(column => {
+                    const td = document.createElement('td');
+                    td.textContent = row[column] ?? 'NULL';
+                    tr.appendChild(td);
+                });
+                resultsBody.appendChild(tr);
+            });
+        }
+
+        function showError(message) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.innerHTML = `<div class="error">${message}</div>`;
+        }
+    </script>
+</body>
+</html> 
