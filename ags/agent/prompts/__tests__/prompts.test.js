@@ -21,6 +21,12 @@ describe('Prompt Utilities', () => {
             };
             expect(renderPrompt(template, variables)).toBe('Hello John! Welcome to {{place}}');
         });
+
+        it('should trim whitespace around variable names', () => {
+            const template = 'Hello {{  name  }}!';
+            const variables = { name: 'John' };
+            expect(renderPrompt(template, variables)).toBe('Hello John!');
+        });
     });
 
     describe('getPrompt', () => {
