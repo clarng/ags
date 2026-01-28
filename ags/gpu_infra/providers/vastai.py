@@ -25,10 +25,10 @@ class VastAIProvider(BaseProvider):
             api_base_url=self.API_BASE,
             pricing=[
                 # Prices are approximate market rates, actual prices vary
-                PricingTier(gpu_type=GPUType.A100_80GB, hourly_cost=1.50, spot_price=0.70, vcpus=16, ram_gb=128, storage_gb=100),
-                PricingTier(gpu_type=GPUType.A100_40GB, hourly_cost=1.20, spot_price=0.55, vcpus=16, ram_gb=128, storage_gb=100),
-                PricingTier(gpu_type=GPUType.RTX_4090, hourly_cost=0.45, spot_price=0.25, vcpus=16, ram_gb=64, storage_gb=100),
-                PricingTier(gpu_type=GPUType.RTX_3090, hourly_cost=0.25, spot_price=0.12, vcpus=16, ram_gb=64, storage_gb=100),
+                PricingTier(gpu_type=GPUType.A100_80GB, hourly_cost=1.50, spot_cost=0.70, vcpus=16, ram_gb=128, storage_gb=100),
+                PricingTier(gpu_type=GPUType.A100_40GB, hourly_cost=1.20, spot_cost=0.55, vcpus=16, ram_gb=128, storage_gb=100),
+                PricingTier(gpu_type=GPUType.RTX_4090, hourly_cost=0.45, spot_cost=0.25, vcpus=16, ram_gb=64, storage_gb=100),
+                PricingTier(gpu_type=GPUType.RTX_3090, hourly_cost=0.25, spot_cost=0.12, vcpus=16, ram_gb=64, storage_gb=100),
             ],
             reliability_score=75.0,
             regions=["US", "EU", "ASIA"],

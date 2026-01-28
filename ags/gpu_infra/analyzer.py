@@ -13,7 +13,7 @@ from .providers import PROVIDERS
 class ProviderComparison:
     """Comparison result for a specific GPU type across providers."""
     gpu_type: GPUType
-    comparisons: list[dict]  # List of {provider, hourly_cost, spot_price, reliability, score}
+    comparisons: list[dict]  # List of {provider, hourly_cost, spot_cost, reliability, score}
     best_cost: str  # Provider name
     best_reliability: str  # Provider name
     best_overall: str  # Provider name (balanced score)
@@ -71,8 +71,8 @@ class GPUInfraAnalyzer:
             for tier in info.pricing:
                 if tier.gpu_type == gpu_type:
                     results.append((name, tier.hourly_cost, False))
-                    if include_spot and tier.spot_price:
-                        results.append((name, tier.spot_price, True))
+                    if include_spot and tier.spot_cost:
+                        results.append((name, tier.spot_cost, True))
                     break
 
         return sorted(results, key=lambda x: x[1])
@@ -113,7 +113,7 @@ class GPUInfraAnalyzer:
                         "provider": name,
                         "provider_name": info.name,
                         "hourly_cost": tier.hourly_cost,
-                        "spot_price": tier.spot_price,
+                        "spot_cost": tier.spot_cost,
                         "reliability": info.reliability_score,
                         "vcpus": tier.vcpus,
                         "ram_gb": tier.ram_gb,
@@ -182,7 +182,7 @@ class GPUInfraAnalyzer:
         for tier in info.pricing:
             if tier.gpu_type == gpu_type:
                 on_demand = tier.hourly_cost * gpu_count * hours
-                spot = tier.spot_price * gpu_count * hours if tier.spot_price else None
+                spot = tier.spot_cost * gpu_count * hours if tier.spot_cost else None
 
                 return CostEstimate(
                     provider=provider,
@@ -214,7 +214,7 @@ class GPUInfraAnalyzer:
         lines.append("-" * 70)
 
         for comp in comparison.comparisons:
-            spot_str = f"${comp['spot_price']:.2f}" if comp['spot_price'] else "N/A"
+            spot_str = f"${comp['spot_cost']:.2f}" if comp['spot_cost'] else "N/A"
             lines.append(
                 f"{comp['provider_name']:<15} "
                 f"${comp['hourly_cost']:<9.2f} "
@@ -273,13 +273,13 @@ class GPUInfraAnalyzer:
         }
 
         # Spot workloads: cheapest spot price
-        spot_options = [c for c in comparison.comparisons if c["spot_price"]]
+        spot_options = [c for c in comparison.comparisons if c["spot_cost"]]
         if spot_options:
-            for_spot = min(spot_options, key=lambda x: x["spot_price"])
+            for_spot = min(spot_options, key=lambda x: x["spot_cost"])
             recommendations["for_spot_workloads"] = {
                 "provider": for_spot["provider"],
-                "reason": f"Cheapest spot price (${for_spot['spot_price']}/hr)",
-                "cost": for_spot["spot_price"],
+                "reason": f"Cheapest spot price (${for_spot['spot_cost']}/hr)",
+                "cost": for_spot["spot_cost"],
             }
 
         return recommendations

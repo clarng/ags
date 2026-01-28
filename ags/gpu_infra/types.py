@@ -13,7 +13,9 @@ class GPUType(Enum):
     A100_40GB = "a100_40gb"
     A100_80GB = "a100_80gb"
     H100 = "h100"
+    H200 = "h200"
     A10 = "a10"
+    L40S = "l40s"
     RTX_4090 = "rtx_4090"
     RTX_3090 = "rtx_3090"
     V100 = "v100"
@@ -37,7 +39,7 @@ class PricingTier:
     vcpus: int = 8
     ram_gb: int = 64
     storage_gb: int = 100
-    spot_price: Optional[float] = None  # Spot/preemptible price if available
+    spot_cost: Optional[float] = None  # Spot/preemptible price if available
 
 
 @dataclass
