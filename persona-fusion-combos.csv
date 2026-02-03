@@ -1,0 +1,26 @@
+Target Arcana,Combo 1,Combo 2,Combo 3,Combo 4,Combo 5,Combo 6,Combo 7,Combo 8,Combo 9,Combo 10,Combo 11,Combo 12,Combo 13
+Fool,Fool + Fool,Magician + Strength,Empress + Hierophant,Empress + Death,Emperor + Lovers,Hierophant + Strength,Chariot + Hanged,Justice + Death,Justice + Devil,Death + Faith,Temperance + Devil,Temperance + Councillor,Moon + Judgement
+Magician,Fool + Star,Magician + Magician,Priestess + Hierophant,Priestess + Fortune,Priestess + Death,Empress + Faith,Lovers + Moon,Justice + Hermit,Strength + Moon,Death + Councillor,Temperance + Sun,Devil + Tower,
+Priestess,Fool + Hermit,Magician + Chariot,Magician + Star,Priestess + Priestess,Empress + Hanged,Emperor + Judgement,Emperor + Faith,Hierophant + Moon,Chariot + Sun,Hermit + Devil,Hermit + Moon,Death + Sun,Faith + Councillor
+Empress,Fool + Tower,Magician + Hanged,Priestess + Emperor,Empress + Empress,Hierophant + Faith,Lovers + Tower,Lovers + Sun,Justice + Star,Fortune + Temperance,Strength + Councillor,Moon + Sun,,
+Emperor,Magician + Justice,Priestess + Empress,Empress + Tower,Empress + Judgement,Emperor + Emperor,Justice + Fortune,Justice + Temperance,Justice + Councillor,Hermit + Judgement,Fortune + Hanged,Tower + Sun,Sun + Faith,
+Hierophant,Fool + Temperance,Fool + Councillor,Magician + Devil,Magician + Sun,Priestess + Chariot,Priestess + Moon,Emperor + Hermit,Hierophant + Hierophant,Hermit + Strength,Fortune + Devil,Strength + Death,Hanged + Sun,Death + Moon
+Lovers,Magician + Hermit,Magician + Moon,Empress + Justice,Empress + Star,Emperor + Star,Emperor + Councillor,Hierophant + Sun,Lovers + Lovers,Chariot + Moon,Chariot + Faith,Justice + Hanged,Devil + Judgement,
+Chariot,Fool + Lovers,Magician + Temperance,Priestess + Sun,Emperor + Justice,Hierophant + Death,Lovers + Hermit,Chariot + Chariot,Strength + Temperance,Death + Devil,Devil + Moon,Devil + Faith,Devil + Councillor,
+Justice,Fool + Moon,Fool + Sun,Magician + Empress,Magician + Fortune,Priestess + Judgement,Priestess + Faith,Empress + Emperor,Emperor + Devil,Hierophant + Fortune,Hierophant + Councillor,Justice + Justice,Hanged + Star,
+Hermit,Fool + Hierophant,Magician + Death,Priestess + Star,Empress + Fortune,Emperor + Death,Chariot + Strength,Hermit + Hermit,Hanged + Tower,Temperance + Judgement,Temperance + Faith,Devil + Sun,Tower + Moon,
+Fortune,Priestess + Lovers,Empress + Moon,Emperor + Hierophant,Chariot + Tower,Fortune + Fortune,Hanged + Devil,Temperance + Tower,Star + Judgement,Sun + Councillor,Judgement + Faith,,,
+Strength,Fool + Death,Magician + Judgement,Magician + Faith,Empress + Hermit,Hierophant + Lovers,Lovers + Fortune,Lovers + Temperance,Chariot + Temperance,Hermit + Death,Hermit + Temperance,Hermit + Star,Strength + Strength,Devil + Star
+Hanged,Fool + Empress,Priestess + Tower,Empress + Councillor,Hierophant + Justice,Hierophant + Devil,Lovers + Judgement,Justice + Sun,Justice + Faith,Fortune + Tower,Hanged + Hanged,Death + Temperance,,
+Death,Fool + Magician,Fool + Strength,Magician + Hierophant,Priestess + Justice,Priestess + Hanged,Hierophant + Temperance,Lovers + Strength,Strength + Devil,Hanged + Temperance,Death + Death,Tower + Faith,Tower + Councillor,Sun + Judgement
+Temperance,Fool + Emperor,Fool + Devil,Magician + Priestess,Magician + Tower,Priestess + Hermit,Lovers + Chariot,Lovers + Death,Chariot + Devil,Strength + Hanged,Temperance + Temperance,Star + Moon,Star + Faith,Moon + Councillor
+Devil,Magician + Lovers,Priestess + Strength,Priestess + Temperance,Emperor + Hanged,Emperor + Temperance,Chariot + Hermit,Chariot + Death,Justice + Moon,Hermit + Sun,Fortune + Star,Hanged + Faith,Devil + Devil,Judgement + Councillor
+Tower,Fool + Hanged,Empress + Sun,Emperor + Strength,Emperor + Moon,Hierophant + Star,Lovers + Faith,Lovers + Councillor,Fortune + Judgement,Tower + Tower,,,,
+Star,Fool + Justice,Empress + Chariot,Emperor + Tower,Hierophant + Chariot,Hermit + Fortune,Hermit + Hanged,Fortune + Death,Fortune + Sun,Strength + Faith,Hanged + Judgement,Hanged + Councillor,Star + Star,
+Moon,Fool + Priestess,Fool + Chariot,Magician + Councillor,Priestess + Devil,Lovers + Devil,Chariot + Justice,Chariot + Star,Strength + Star,Strength + Sun,Hanged + Death,Tower + Judgement,Moon + Moon,
+Sun,Fool + Judgement,Empress + Devil,Emperor + Fortune,Hierophant + Hanged,Chariot + Councillor,Justice + Tower,Fortune + Moon,Death + Tower,Temperance + Star,Star + Councillor,Moon + Faith,Sun + Sun,
+Judgement,Empress + Lovers,Emperor + Sun,Hierophant + Tower,Lovers + Justice,Hermit + Tower,Hermit + Faith,Fortune + Councillor,Star + Sun,Judgement + Judgement,,,,
+Faith,Fool + Fortune,Magician + Emperor,Priestess + Councillor,Empress + Strength,Empress + Temperance,Emperor + Chariot,Hierophant + Judgement,Lovers + Star,Hermit + Councillor,Fortune + Strength,Strength + Tower,Faith + Faith,
+Councillor,Fool + Faith,Hierophant + Hermit,Lovers + Hanged,Chariot + Fortune,Justice + Strength,Fortune + Faith,Hanged + Moon,Death + Star,Temperance + Moon,Tower + Star,Councillor + Councillor,,
+World,World + World,,,,,,,,,,,,
+
