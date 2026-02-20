@@ -45,16 +45,24 @@ def parse_gpu_type(gpu_str: str) -> GPUType:
     return mapping.get(gpu_str.lower(), GPUType.A100_40GB)
 
 
+def _make_analyzer(live: bool = False) -> GPUInfraAnalyzer:
+    """Create analyzer, optionally refreshing with live pricing."""
+    analyzer = GPUInfraAnalyzer()
+    if live:
+        analyzer.refresh_from_live(verbose=True)
+    return analyzer
+
+
 def cmd_compare(args):
     """Compare providers for a GPU type."""
-    analyzer = GPUInfraAnalyzer()
+    analyzer = _make_analyzer(live=args.live)
     gpu_type = parse_gpu_type(args.gpu) if args.gpu else GPUType.A100_40GB
     print(analyzer.print_comparison_table(gpu_type))
 
 
 def cmd_recommend(args):
     """Get recommendations for different use cases."""
-    analyzer = GPUInfraAnalyzer()
+    analyzer = _make_analyzer(live=args.live)
     gpu_type = parse_gpu_type(args.gpu) if args.gpu else GPUType.A100_40GB
     recs = analyzer.get_recommendations(gpu_type)
 
@@ -240,7 +248,7 @@ def cmd_providers(args):
 
 def cmd_prices(args):
     """Show prices for all providers."""
-    analyzer = GPUInfraAnalyzer()
+    analyzer = _make_analyzer(live=args.live)
 
     if args.gpu:
         gpu_types = [parse_gpu_type(args.gpu)]
@@ -261,10 +269,12 @@ def main():
     # Compare command
     compare_parser = subparsers.add_parser("compare", help="Compare providers")
     compare_parser.add_argument("--gpu", "-g", help="GPU type (e.g., a100, h100, 4090)")
+    compare_parser.add_argument("--live", "-l", action="store_true", help="Fetch live pricing from provider APIs")
 
     # Recommend command
     rec_parser = subparsers.add_parser("recommend", help="Get recommendations")
     rec_parser.add_argument("--gpu", "-g", help="GPU type")
+    rec_parser.add_argument("--live", "-l", action="store_true", help="Fetch live pricing from provider APIs")
 
     # List command
     list_parser = subparsers.add_parser("list", help="List instances")
@@ -302,6 +312,7 @@ def main():
     # Prices command
     prices_parser = subparsers.add_parser("prices", help="Show prices")
     prices_parser.add_argument("--gpu", "-g", help="GPU type")
+    prices_parser.add_argument("--live", "-l", action="store_true", help="Fetch live pricing from provider APIs")
 
     args = parser.parse_args()
 

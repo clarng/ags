@@ -48,6 +48,30 @@ class GPUInfraAnalyzer:
             except Exception:
                 pass
 
+    def refresh_from_live(self, verbose: bool = True):
+        """Fetch live pricing from provider APIs and override cached data."""
+        from .live_pricing import fetch_all_live
+
+        live_data = fetch_all_live(verbose=verbose)
+        for provider_name, tiers in live_data.items():
+            if provider_name not in self._providers:
+                continue
+            info = self._providers[provider_name]
+            # Replace pricing tiers that we got live data for
+            live_gpu_types = {t.gpu_type for t in tiers}
+            kept = [t for t in info.pricing if t.gpu_type not in live_gpu_types]
+            kept.extend(tiers)
+            self._providers[provider_name] = ProviderInfo(
+                name=info.name,
+                api_base_url=info.api_base_url,
+                pricing=kept,
+                reliability_score=info.reliability_score,
+                regions=info.regions,
+                supports_spot=info.supports_spot,
+                min_billing_increment=info.min_billing_increment,
+                notes=info.notes,
+            )
+
     def get_all_providers(self) -> list[ProviderInfo]:
         """Get information about all providers."""
         return list(self._providers.values())
