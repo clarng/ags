@@ -7,6 +7,14 @@ setup(
     author="AGS Team",
     packages=find_packages(),
     python_requires=">=3.9",
+    install_requires=[
+        "requests>=2.28.0",
+    ],
+    entry_points={
+        "console_scripts": [
+            "gpu-infra=ags.gpu_infra.cli:main",
+        ],
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",

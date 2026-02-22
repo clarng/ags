@@ -1,0 +1,256 @@
+{
+  "updated_at": "2026-01-28T05:45:09.189677Z",
+  "providers": {
+    "lambda": {
+      "name": "Lambda Labs",
+      "reliability_score": 92.0,
+      "supports_spot": false,
+      "regions": [
+        "us-west-1",
+        "us-east-1",
+        "us-south-1",
+        "europe-central-1"
+      ],
+      "min_billing_increment": 60,
+      "notes": "High reliability, good for production workloads. Often has availability issues for A100s.",
+      "pricing": [
+        {
+          "gpu_type": "a100_40gb",
+          "hourly_cost": 1.1,
+          "spot_cost": null,
+          "vcpus": 30,
+          "ram_gb": 200,
+          "storage_gb": 512
+        },
+        {
+          "gpu_type": "a100_80gb",
+          "hourly_cost": 1.29,
+          "spot_cost": null,
+          "vcpus": 30,
+          "ram_gb": 200,
+          "storage_gb": 512
+        },
+        {
+          "gpu_type": "h100",
+          "hourly_cost": 2.49,
+          "spot_cost": null,
+          "vcpus": 26,
+          "ram_gb": 200,
+          "storage_gb": 512
+        },
+        {
+          "gpu_type": "a10",
+          "hourly_cost": 0.6,
+          "spot_cost": null,
+          "vcpus": 30,
+          "ram_gb": 200,
+          "storage_gb": 512
+        }
+      ]
+    },
+    "runpod": {
+      "name": "RunPod",
+      "reliability_score": 85.0,
+      "supports_spot": true,
+      "regions": [
+        "US",
+        "EU",
+        "CA"
+      ],
+      "min_billing_increment": 1,
+      "notes": "Great spot prices, community cloud option. Good for experimentation.",
+      "pricing": [
+        {
+          "gpu_type": "a100_80gb",
+          "hourly_cost": 1.89,
+          "spot_cost": 0.89,
+          "vcpus": 16,
+          "ram_gb": 125,
+          "storage_gb": 100
+        },
+        {
+          "gpu_type": "a100_40gb",
+          "hourly_cost": 1.64,
+          "spot_cost": 0.79,
+          "vcpus": 16,
+          "ram_gb": 125,
+          "storage_gb": 100
+        },
+        {
+          "gpu_type": "h100",
+          "hourly_cost": 3.89,
+          "spot_cost": 2.39,
+          "vcpus": 20,
+          "ram_gb": 200,
+          "storage_gb": 100
+        },
+        {
+          "gpu_type": "rtx_4090",
+          "hourly_cost": 0.74,
+          "spot_cost": 0.34,
+          "vcpus": 16,
+          "ram_gb": 62,
+          "storage_gb": 100
+        },
+        {
+          "gpu_type": "rtx_3090",
+          "hourly_cost": 0.44,
+          "spot_cost": 0.19,
+          "vcpus": 16,
+          "ram_gb": 62,
+          "storage_gb": 100
+        }
+      ]
+    },
+    "vastai": {
+      "name": "Vast.ai",
+      "reliability_score": 75.0,
+      "supports_spot": true,
+      "regions": [
+        "US",
+        "EU",
+        "ASIA"
+      ],
+      "min_billing_increment": 60,
+      "notes": "Cheapest option, marketplace model. Variable reliability depending on host.",
+      "pricing": [
+        {
+          "gpu_type": "a100_80gb",
+          "hourly_cost": 1.5,
+          "spot_cost": 0.7,
+          "vcpus": 16,
+          "ram_gb": 128,
+          "storage_gb": 100
+        },
+        {
+          "gpu_type": "a100_40gb",
+          "hourly_cost": 1.2,
+          "spot_cost": 0.55,
+          "vcpus": 16,
+          "ram_gb": 128,
+          "storage_gb": 100
+        },
+        {
+          "gpu_type": "rtx_4090",
+          "hourly_cost": 0.45,
+          "spot_cost": 0.25,
+          "vcpus": 16,
+          "ram_gb": 64,
+          "storage_gb": 100
+        },
+        {
+          "gpu_type": "rtx_3090",
+          "hourly_cost": 0.25,
+          "spot_cost": 0.12,
+          "vcpus": 16,
+          "ram_gb": 64,
+          "storage_gb": 100
+        }
+      ]
+    },
+    "coreweave": {
+      "name": "CoreWeave",
+      "reliability_score": 95.0,
+      "supports_spot": true,
+      "regions": [
+        "ORD1",
+        "LAS1",
+        "LGA1"
+      ],
+      "min_billing_increment": 60,
+      "notes": "Enterprise-grade, best reliability. Uses Kubernetes. Higher prices but excellent support.",
+      "pricing": [
+        {
+          "gpu_type": "a100_80gb",
+          "hourly_cost": 2.21,
+          "spot_cost": null,
+          "vcpus": 16,
+          "ram_gb": 128,
+          "storage_gb": 256
+        },
+        {
+          "gpu_type": "a100_40gb",
+          "hourly_cost": 2.06,
+          "spot_cost": null,
+          "vcpus": 16,
+          "ram_gb": 128,
+          "storage_gb": 256
+        },
+        {
+          "gpu_type": "h100",
+          "hourly_cost": 4.76,
+          "spot_cost": null,
+          "vcpus": 24,
+          "ram_gb": 180,
+          "storage_gb": 256
+        },
+        {
+          "gpu_type": "a10",
+          "hourly_cost": 0.75,
+          "spot_cost": null,
+          "vcpus": 8,
+          "ram_gb": 32,
+          "storage_gb": 128
+        },
+        {
+          "gpu_type": "rtx_4090",
+          "hourly_cost": 1.24,
+          "spot_cost": null,
+          "vcpus": 8,
+          "ram_gb": 32,
+          "storage_gb": 128
+        }
+      ]
+    }
+  },
+  "gpu_specs": {
+    "h100": {
+      "vram_gb": 80,
+      "fp16_tflops": 1979,
+      "memory_bandwidth_gbps": 3350,
+      "tdp_watts": 700
+    },
+    "a100_80gb": {
+      "vram_gb": 80,
+      "fp16_tflops": 312,
+      "memory_bandwidth_gbps": 2039,
+      "tdp_watts": 400
+    },
+    "a100_40gb": {
+      "vram_gb": 40,
+      "fp16_tflops": 312,
+      "memory_bandwidth_gbps": 1555,
+      "tdp_watts": 400
+    },
+    "a10": {
+      "vram_gb": 24,
+      "fp16_tflops": 125,
+      "memory_bandwidth_gbps": 600,
+      "tdp_watts": 150
+    },
+    "rtx_4090": {
+      "vram_gb": 24,
+      "fp16_tflops": 330,
+      "memory_bandwidth_gbps": 1008,
+      "tdp_watts": 450
+    },
+    "rtx_3090": {
+      "vram_gb": 24,
+      "fp16_tflops": 142,
+      "memory_bandwidth_gbps": 936,
+      "tdp_watts": 350
+    },
+    "v100": {
+      "vram_gb": 16,
+      "fp16_tflops": 125,
+      "memory_bandwidth_gbps": 900,
+      "tdp_watts": 300
+    },
+    "l40s": {
+      "vram_gb": 48,
+      "fp16_tflops": 362,
+      "memory_bandwidth_gbps": 864,
+      "tdp_watts": 350
+    }
+  }
+}
